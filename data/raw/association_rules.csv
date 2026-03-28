@@ -1,0 +1,169 @@
+antecedents,consequents,support,confidence,lift,conviction
+"AcadPressure_Low, Suicidal_No",Depression_No,0.1594,0.9162,2.2103,6.9828
+"Age_>30, Suicidal_No",Depression_No,0.0877,0.8799,2.1227,4.8733
+"AcadPressure_Low, Sleep_>8h",Depression_No,0.0607,0.7853,1.8944,2.7264
+"CGPA_Mid, Suicidal_No",Depression_No,0.1334,0.7806,1.8833,2.6689
+"Depression_No, StudySat_Moderate",AcadPressure_Low,0.0535,0.6049,1.8779,1.7159
+"AcadPressure_Low, Depression_No",Suicidal_No,0.1594,0.6856,1.8672,2.0129
+"CGPA_High, Depression_No",Suicidal_No,0.1484,0.6828,1.8594,1.9948
+Suicidal_No,Depression_No,0.2819,0.7678,1.8523,2.5214
+Depression_No,Suicidal_No,0.2819,0.6802,1.8523,1.9785
+"Age_>30, Depression_No",Suicidal_No,0.0877,0.6785,1.8478,1.9683
+"Age_22-25, Depression_No",Suicidal_No,0.0608,0.6777,1.8457,1.9635
+"CGPA_Mid, Depression_No",Suicidal_No,0.1334,0.6773,1.8447,1.9612
+"AcadPressure_Low, StudySat_High",Depression_No,0.1069,0.7593,1.8318,2.4324
+"CGPA_High, Suicidal_No",Depression_No,0.1484,0.7565,1.825,2.4044
+"AcadPressure_High, Depression_No",Suicidal_No,0.0504,0.6676,1.8182,1.9039
+"AcadPressure_Low, Age_26-30",Depression_No,0.0646,0.7373,1.7788,2.2289
+"Depression_No, Sleep_>8h",AcadPressure_Low,0.0607,0.5708,1.7719,1.5794
+"Depression_No, Sleep_<5h",AcadPressure_Low,0.0603,0.5707,1.7716,1.579
+"Depression_No, FinStress_High",AcadPressure_Low,0.0619,0.568,1.7634,1.5693
+"Age_22-25, Suicidal_No",Depression_No,0.0608,0.7296,1.7601,2.1651
+"Depression_No, Suicidal_No",AcadPressure_Low,0.1594,0.5653,1.755,1.5595
+"Depression_No, StudyHrs_High",AcadPressure_Low,0.0996,0.5622,1.7452,1.5484
+Depression_No,AcadPressure_Low,0.2325,0.5608,1.741,1.5435
+AcadPressure_Low,Depression_No,0.2325,0.7216,1.741,2.1033
+"Depression_No, FamilyHistory_Yes",AcadPressure_Low,0.105,0.5604,1.7397,1.5421
+"AcadPressure_Low, StudySat_Moderate",Depression_No,0.0535,0.7137,1.7218,2.0448
+"AcadPressure_Low, Sleep_7-8h",Depression_No,0.0582,0.7096,1.712,2.0162
+"AcadPressure_Low, FamilyHistory_Yes",Depression_No,0.105,0.7049,1.7006,1.9841
+"Age_>30, StudySat_High",Depression_No,0.0611,0.686,1.6549,1.8644
+"AcadPressure_Low, Sleep_<5h",Depression_No,0.0603,0.6689,1.6138,1.7684
+"AcadPressure_High, Suicidal_Yes",Depression_Yes,0.2844,0.9189,1.5695,5.1126
+"AcadPressure_Low, StudyHrs_High",Depression_No,0.0996,0.6425,1.5502,1.638
+"AcadPressure_High, FinStress_High",Depression_Yes,0.1871,0.9069,1.5489,4.4512
+"AcadPressure_High, Age_<=21",Depression_Yes,0.1042,0.8879,1.5166,3.6989
+FinStress_Low,Depression_No,0.2285,0.6261,1.5105,1.5659
+Depression_No,FinStress_Low,0.2285,0.5512,1.5105,1.4151
+"Depression_Yes, StudySat_Low",AcadPressure_High,0.1694,0.6198,1.5102,1.5507
+"Depression_Yes, FinStress_Low",AcadPressure_High,0.0842,0.617,1.5034,1.5395
+"AcadPressure_Low, StudySat_High",Suicidal_No,0.0775,0.5504,1.4989,1.4074
+"AcadPressure_High, StudySat_Low",Depression_Yes,0.1694,0.8645,1.4764,3.0581
+"AcadPressure_High, StudyHrs_High",Depression_Yes,0.1992,0.8626,1.4733,3.0177
+"AcadPressure_High, Sleep_<5h",Depression_Yes,0.1119,0.8575,1.4645,2.9079
+"AcadPressure_High, Age_22-25",Depression_Yes,0.0829,0.8569,1.4636,2.8972
+"Age_26-30, Depression_Yes",AcadPressure_High,0.0949,0.5973,1.4553,1.4641
+"Depression_Yes, StudyHrs_Moderate",AcadPressure_High,0.0676,0.5953,1.4504,1.4567
+"Depression_Yes, Suicidal_No",AcadPressure_High,0.0506,0.5931,1.4451,1.449
+"Depression_Yes, Sleep_>8h",AcadPressure_High,0.0654,0.5926,1.4439,1.4472
+"Depression_Yes, Gender_Female",AcadPressure_High,0.1517,0.5862,1.4283,1.4248
+"AcadPressure_High, FamilyHistory_Yes",Depression_Yes,0.1707,0.8354,1.4269,2.5188
+Age_>30,Depression_No,0.1292,0.5911,1.426,1.4318
+"Depression_Yes, Sleep_<5h",AcadPressure_High,0.1119,0.5824,1.4189,1.4117
+"AcadPressure_High, FinStress_Moderate",Depression_Yes,0.0637,0.8299,1.4174,2.4369
+"Depression_Yes, StudyHrs_Low",AcadPressure_High,0.0681,0.58,1.4131,1.4037
+"CGPA_Mid, Depression_Yes",AcadPressure_High,0.1509,0.5795,1.412,1.4021
+"AcadPressure_High, StudySat_Moderate",Depression_Yes,0.0661,0.8229,1.4055,2.3408
+"Depression_Yes, FinStress_Moderate",AcadPressure_High,0.0637,0.5766,1.405,1.3926
+"Depression_Yes, FamilyHistory_Yes",AcadPressure_High,0.1707,0.5756,1.4025,1.3892
+"AcadPressure_High, Sleep_7-8h",Depression_Yes,0.0859,0.8209,1.402,2.3142
+"Age_<=21, Depression_Yes",AcadPressure_High,0.1042,0.5742,1.3992,1.3848
+AcadPressure_High,"Depression_Yes, WorkPressure_Low",0.3349,0.8161,1.3939,2.254
+"Depression_Yes, WorkPressure_Low",AcadPressure_High,0.3349,0.5721,1.3939,1.3778
+AcadPressure_High,Depression_Yes,0.3349,0.8161,1.3938,2.2538
+"AcadPressure_High, WorkPressure_Low",Depression_Yes,0.3349,0.8161,1.3938,2.2538
+Depression_Yes,AcadPressure_High,0.3349,0.572,1.3938,1.3777
+Depression_Yes,"AcadPressure_High, WorkPressure_Low",0.3349,0.572,1.3938,1.3777
+"AcadPressure_High, nan",Depression_Yes,0.3349,0.8161,1.3938,2.2536
+Depression_Yes,"AcadPressure_High, nan",0.3349,0.572,1.3938,1.3776
+AcadPressure_High,"Depression_Yes, nan",0.3349,0.816,1.3938,2.2529
+"Depression_Yes, nan",AcadPressure_High,0.3349,0.572,1.3938,1.3776
+"AcadPressure_High, StudyHrs_Moderate",Depression_Yes,0.0676,0.8137,1.3898,2.2251
+AcadPressure_High,"Depression_Yes, Suicidal_Yes",0.2844,0.6929,1.3851,1.6272
+"Depression_Yes, Suicidal_Yes",AcadPressure_High,0.2844,0.5685,1.3851,1.3662
+"Depression_Yes, FamilyHistory_No",AcadPressure_High,0.1643,0.5684,1.3849,1.366
+"Depression_Yes, Sleep_5-6h",AcadPressure_High,0.0716,0.5678,1.3835,1.3642
+"AcadPressure_High, Gender_Female",Depression_Yes,0.1517,0.81,1.3834,2.1815
+"Age_>30, FamilyHistory_Yes",Depression_No,0.0606,0.5727,1.3816,1.3702
+"AcadPressure_High, CGPA_Mid",Depression_Yes,0.1509,0.8018,1.3693,2.0908
+"Depression_Yes, StudyHrs_High",AcadPressure_High,0.1992,0.562,1.3693,1.346
+"Age_>30, Depression_Yes",Suicidal_Yes,0.0774,0.8661,1.3686,2.7418
+"CGPA_High, Suicidal_Yes",Depression_Yes,0.2772,0.8008,1.3677,2.0807
+StudyHrs_Low,Depression_No,0.1523,0.5646,1.3621,1.3447
+"AcadPressure_High, Age_26-30",Depression_Yes,0.0949,0.7972,1.3615,2.0436
+"AcadPressure_High, FamilyHistory_No",Depression_Yes,0.1643,0.7969,1.3611,2.0409
+"StudySat_Low, Suicidal_Yes",AcadPressure_High,0.1515,0.5548,1.3518,1.3243
+"AcadPressure_High, Sleep_5-6h",Depression_Yes,0.0716,0.7912,1.3513,1.9852
+Depression_Yes,Suicidal_Yes,0.5002,0.8544,1.3501,2.5214
+Suicidal_Yes,Depression_Yes,0.5002,0.7905,1.3501,1.9785
+"CGPA_High, Depression_Yes",Suicidal_Yes,0.2772,0.853,1.3479,2.4976
+"Depression_Yes, FinStress_High",AcadPressure_High,0.1871,0.5525,1.3462,1.3175
+"AcadPressure_High, Depression_Yes",Suicidal_Yes,0.2844,0.849,1.3417,2.4319
+"Depression_Yes, StudySat_Moderate",AcadPressure_High,0.0661,0.5503,1.3407,1.3109
+"AcadPressure_High, Sleep_>8h",Depression_Yes,0.0654,0.7732,1.3206,1.8277
+"Depression_Yes, Sleep_7-8h",FinStress_High,0.0918,0.5859,1.3088,1.3339
+"FinStress_High, Sleep_7-8h",Depression_Yes,0.0918,0.7597,1.2976,1.725
+FinStress_High,Depression_Yes,0.3386,0.7564,1.292,1.7019
+Depression_Yes,FinStress_High,0.3386,0.5784,1.292,1.31
+"FinStress_High, StudySat_Moderate",Depression_Yes,0.0675,0.7563,1.2918,1.701
+"AcadPressure_High, StudySat_High",Depression_Yes,0.0993,0.7411,1.2658,1.6011
+"AcadPressure_High, FinStress_High",Suicidal_Yes,0.1651,0.8004,1.2648,1.8395
+"Depression_Yes, StudySat_Moderate",FinStress_High,0.0675,0.5619,1.2552,1.2607
+"AcadPressure_High, Depression_Yes",FinStress_High,0.1871,0.5586,1.2478,1.2513
+"AcadPressure_High, Age_<=21",Suicidal_Yes,0.092,0.7838,1.2386,1.6985
+"AcadPressure_High, Sleep_<5h",Suicidal_Yes,0.1022,0.783,1.2374,1.6923
+"AcadPressure_High, StudyHrs_High",Suicidal_Yes,0.1804,0.7812,1.2344,1.6779
+"AcadPressure_High, StudySat_Moderate",Suicidal_Yes,0.0625,0.7779,1.2292,1.6531
+"AcadPressure_High, FinStress_Moderate",Suicidal_Yes,0.0593,0.7734,1.2221,1.6202
+"AcadPressure_High, StudySat_Low",Suicidal_Yes,0.1515,0.773,1.2215,1.6176
+"Sleep_<5h, StudyHrs_High",Depression_Yes,0.1142,0.7127,1.2172,1.4427
+Age_<=21,Depression_Yes,0.1815,0.7122,1.2165,1.4404
+"AcadPressure_High, Age_22-25",Suicidal_Yes,0.0743,0.7687,1.2148,1.5876
+"AcadPressure_High, FamilyHistory_Yes",Suicidal_Yes,0.1568,0.7674,1.2126,1.5784
+"AcadPressure_High, StudyHrs_Low",Depression_Yes,0.0681,0.7066,1.2068,1.4127
+"AcadPressure_High, Sleep_7-8h",Suicidal_Yes,0.0799,0.763,1.2058,1.5494
+AcadPressure_High,"Suicidal_Yes, WorkPressure_Low",0.3095,0.754,1.1916,1.4928
+AcadPressure_High,Suicidal_Yes,0.3095,0.754,1.1915,1.4926
+"AcadPressure_High, WorkPressure_Low",Suicidal_Yes,0.3095,0.754,1.1915,1.4926
+"AcadPressure_High, nan",Suicidal_Yes,0.3094,0.754,1.1915,1.4925
+AcadPressure_High,"Suicidal_Yes, nan",0.3094,0.7539,1.1914,1.4922
+"AcadPressure_High, Gender_Female",Suicidal_Yes,0.1411,0.7535,1.1908,1.4899
+"AcadPressure_High, Age_26-30",Suicidal_Yes,0.0897,0.7529,1.1898,1.4862
+"AcadPressure_High, CGPA_Mid",Suicidal_Yes,0.1407,0.7479,1.1818,1.4563
+"AcadPressure_High, StudyHrs_Moderate",Suicidal_Yes,0.0621,0.7477,1.1816,1.4556
+"CGPA_High, StudySat_Low",Depression_Yes,0.1568,0.6863,1.1722,1.3214
+"AcadPressure_High, FamilyHistory_No",Suicidal_Yes,0.1527,0.7407,1.1706,1.4163
+"AcadPressure_High, Sleep_5-6h",Suicidal_Yes,0.0664,0.7345,1.1608,1.3833
+StudySat_Low,Depression_Yes,0.2733,0.6754,1.1536,1.2771
+FinStress_High,Suicidal_Yes,0.3262,0.7287,1.1515,1.3533
+StudyHrs_High,Depression_Yes,0.3545,0.6668,1.1388,1.2438
+Depression_Yes,StudyHrs_High,0.3545,0.6054,1.1388,1.187
+"AcadPressure_High, Sleep_>8h",Suicidal_Yes,0.0608,0.7194,1.1368,1.3085
+"AcadPressure_High, FinStress_Low",Depression_Yes,0.0842,0.6608,1.1285,1.2219
+"AcadPressure_High, StudySat_High",Suicidal_Yes,0.0954,0.7117,1.1246,1.2736
+"AcadPressure_High, Depression_Yes",StudyHrs_High,0.1992,0.5948,1.1187,1.1558
+"Depression_Yes, Sleep_<5h",StudyHrs_High,0.1142,0.5941,1.1175,1.1539
+"Age_>30, Suicidal_Yes",Depression_Yes,0.0774,0.6508,1.1115,1.187
+Sleep_<5h,Depression_Yes,0.1921,0.6451,1.1018,1.168
+"AcadPressure_High, Sleep_7-8h",StudyHrs_High,0.0613,0.5856,1.1015,1.1303
+"AcadPressure_High, StudyHrs_Low",Suicidal_Yes,0.0669,0.6943,1.0972,1.2012
+"AcadPressure_High, Age_22-25",StudyHrs_High,0.0564,0.583,1.0967,1.1233
+"AcadPressure_High, Suicidal_Yes",StudyHrs_High,0.1804,0.5829,1.0965,1.123
+"Age_22-25, FinStress_High",StudyHrs_High,0.0683,0.5811,1.093,1.1181
+"Sleep_5-6h, StudySat_Low",CGPA_High,0.0525,0.5919,1.0914,1.1215
+Age_<=21,Suicidal_Yes,0.1758,0.69,1.0904,1.1845
+"AcadPressure_Moderate, FinStress_High",StudyHrs_High,0.0723,0.5772,1.0858,1.1079
+Age_22-25,Depression_Yes,0.1557,0.6343,1.0833,1.1334
+"AcadPressure_High, Sleep_5-6h",StudyHrs_High,0.052,0.5753,1.0821,1.1028
+"AcadPressure_High, FinStress_High",StudyHrs_High,0.1186,0.5749,1.0814,1.1017
+"AcadPressure_High, FamilyHistory_Yes",StudyHrs_High,0.117,0.5726,1.0771,1.0959
+"AcadPressure_High, StudySat_Low",StudyHrs_High,0.1122,0.5725,1.0769,1.0957
+Suicidal_Yes,StudyHrs_High,0.3606,0.5698,1.0718,1.0887
+StudyHrs_High,Suicidal_Yes,0.3606,0.6782,1.0718,1.1411
+"CGPA_High, StudySat_Low",Suicidal_Yes,0.1544,0.6755,1.0675,1.1316
+StudySat_Low,Suicidal_Yes,0.273,0.6747,1.0662,1.1289
+"AcadPressure_High, nan",StudyHrs_High,0.2309,0.5627,1.0585,1.0711
+AcadPressure_High,"StudyHrs_High, WorkPressure_Low",0.2309,0.5627,1.0584,1.071
+AcadPressure_High,"StudyHrs_High, nan",0.2309,0.5627,1.0584,1.071
+AcadPressure_High,StudyHrs_High,0.2309,0.5627,1.0584,1.0709
+"AcadPressure_High, WorkPressure_Low",StudyHrs_High,0.2309,0.5627,1.0584,1.0709
+"Depression_Yes, StudySat_Low",CGPA_High,0.1568,0.5739,1.0582,1.0741
+"AcadPressure_High, CGPA_Mid",StudyHrs_High,0.1057,0.5618,1.0567,1.0688
+FinStress_High,StudyHrs_High,0.2514,0.5616,1.0563,1.0683
+"AcadPressure_High, Sleep_<5h",StudyHrs_High,0.0732,0.5608,1.0549,1.0665
+"Depression_Yes, Sleep_5-6h",CGPA_High,0.0721,0.5721,1.0548,1.0695
+"AcadPressure_High, FinStress_Low",Suicidal_Yes,0.085,0.6672,1.0544,1.1034
+Sleep_<5h,Suicidal_Yes,0.1987,0.667,1.0541,1.1028
+"StudyHrs_Low, StudySat_Low",CGPA_High,0.0594,0.5714,1.0535,1.0677
+"AcadPressure_High, Gender_Female",StudyHrs_High,0.1049,0.5601,1.0535,1.0647
+"Depression_Yes, StudyHrs_Low",CGPA_High,0.067,0.5705,1.0519,1.0656
