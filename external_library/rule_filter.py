@@ -37,7 +37,13 @@ def filter_depression_rules(
     if rules_df.empty:
         return rules_df
 
-    mask = rules_df["consequents"].str.contains(target_consequent, regex=False)
+    # Require an exact single-item consequent match. str.contains admits
+    # multi-item consequents like "Depression_Yes, Suicidal_Yes", producing
+    # spurious pivot columns and the near-empty heatmap columns.
+    def _exact_match(val: str) -> bool:
+        return {s.strip() for s in val.split(",")} == {target_consequent}
+
+    mask = rules_df["consequents"].apply(_exact_match)
     df   = rules_df[mask].copy().reset_index(drop=True)
 
     if df.empty:

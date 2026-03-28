@@ -137,13 +137,29 @@ def plot_rule_heatmap(
 ) -> str:
     df = rules_df.head(top_n).copy()
 
+    # Drop any multi-item consequents that slipped through filtering — they
+    # produce near-empty pivot columns (the original bug visible in the heatmap).
+    df = df[df["consequents"].apply(
+        lambda v: len([s for s in v.split(",") if s.strip()]) == 1
+    )].copy()
+
+    if df.empty:
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.text(0.5, 0.5, "No single-item consequent rules to display",
+                ha="center", va="center", transform=ax.transAxes,
+                color=PALETTE["light"])
+        return _save(fig, output_dir, filename)
+
     # Shorten labels for readability
     df["ant_short"] = df["antecedents"].str[:40]
-    df["con_short"] = df["consequents"].str[:25]
+    df["con_short"] = df["consequents"].str.strip()
 
     pivot = df.pivot_table(
         index="ant_short", columns="con_short", values="confidence", aggfunc="max"
     ).fillna(0)
+
+    # Drop columns that are entirely zero (defensive — should not occur after filtering)
+    pivot = pivot.loc[:, (pivot > 0).any(axis=0)]
 
     h = max(6, len(pivot) * 0.4)
     fig, ax = plt.subplots(figsize=(10, h))
