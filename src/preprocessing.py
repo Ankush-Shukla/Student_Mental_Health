@@ -29,7 +29,9 @@ def _bin_age(series: pd.Series) -> pd.Series:
 
 
 def _bin_cgpa(series: pd.Series) -> pd.Series:
-    bins   = [0, 5.0, 7.5, 10.0]
+    # Boundaries chosen at ~25th and ~75th percentile of this dataset (6.3, 8.9)
+    # rounded to clean values; avoids the empty CGPA_Low bin the old [0,5] boundary created.
+    bins   = [-np.inf, 6.5, 8.5, np.inf]
     labels = ["CGPA_Low", "CGPA_Mid", "CGPA_High"]
     return pd.cut(series, bins=bins, labels=labels, right=True)
 
@@ -125,8 +127,8 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     }
     df["Sleep_Cat"] = df["Sleep Duration"].map(sleep_map).fillna("Sleep_Other")
 
-    # Financial stress (mixed: some numeric, some string)
-    fs = pd.to_numeric(df["Financial Stress"], errors="coerce")
+    # Financial stress (mixed: some numeric, some string, and "?" sentinel)
+    fs = pd.to_numeric(df["Financial Stress"].replace("?", np.nan), errors="coerce")
     df["FinStress_Bin"] = pd.cut(
         fs, bins=[-1, 2, 3, 5],
         labels=["FinStress_Low", "FinStress_Moderate", "FinStress_High"]
@@ -147,9 +149,11 @@ def build_model_matrix(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     """
     df = engineer_features(df)
 
+    # Work Pressure and Job Satisfaction are excluded: 99.9% of records are
+    # students with 0 for both — they add no signal and inflate the correlation matrix.
     feature_cols = [
-        "Age", "CGPA", "Academic Pressure", "Work Pressure",
-        "Study Satisfaction", "Job Satisfaction", "Work/Study Hours",
+        "Age", "CGPA", "Academic Pressure",
+        "Study Satisfaction", "Work/Study Hours",
         "Suicidal_Thoughts", "Family_History",
     ]
 
