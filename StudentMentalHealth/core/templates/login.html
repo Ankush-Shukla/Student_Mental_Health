@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Log in — Student Mental Health{% endblock %}
+{% block content %}
+<div class="container" style="max-width:420px; padding-top:4rem;">
+    <div class="card">
+        <h1 style="margin-bottom:0.25rem;">Log in</h1>
+        <p style="margin-bottom:1.5rem;">Staff use this to access the admin dashboard.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Log in</button>
+        </form>
+        <div class="divider"></div>
+        <p style="margin:0; font-size:0.85rem;">
+            Completing the survey?
+            <a href="{% url 'survey_list' %}" style="color:var(--accent2);">View open surveys</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

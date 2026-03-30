@@ -1,14 +1,84 @@
-<h2>{{ survey.title }}</h2>
+{% extends "base.html" %}
+{% block title %}{{ survey.title }} — Analytics{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="flex-between" style="margin-bottom:1.5rem;">
+        <div>
+            <h1>{{ survey.title }}</h1>
+            <p style="margin:0;">Response analytics</p>
+        </div>
+        <div style="display:flex; gap:0.75rem;">
+            <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">View responses</a>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">Back</a>
+        </div>
+    </div>
 
-<p>Total Responses: {{ total }}</p>
-<p>High Risk: {{ high_risk }}</p>
-<p>Low Risk: {{ low_risk }}</p>
-<p>Average Risk Score: {{ avg_score }}</p>
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--positive);">{{ level_counts.Low }}</div>
+            <div class="stat-label">Low risk</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent2);">{{ level_counts.Moderate }}</div>
+            <div class="stat-label">Moderate risk</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent);">{{ level_counts.High }}</div>
+            <div class="stat-label">High risk</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ avg_score }}</div>
+            <div class="stat-label">Mean risk score</div>
+        </div>
+    </div>
 
-<hr>
-
-<h3>Insights</h3>
-
-<ul>
-    <li>High Risk %: {{ high_risk|floatformat:2 }}</li>
-</ul>
+    {% if total > 0 %}
+    <div class="card">
+        <h2>Risk distribution</h2>
+        {% with high_w=level_counts.High|floatformat:0 mod_w=level_counts.Moderate|floatformat:0 low_w=level_counts.Low|floatformat:0 %}
+        <div style="margin-bottom:1rem;">
+            <div class="flex-between" style="margin-bottom:0.25rem;">
+                <span style="font-size:0.875rem;">High risk</span>
+                <span style="font-size:0.875rem; color:var(--accent);">{{ high_pct }}%</span>
+            </div>
+            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
+                <div style="height:100%; width: {{ high_pct }}; background:var(--accent); border-radius:5px;"></div>
+            </div>
+        </div>
+        {% with mod_pct=level_counts.Moderate|default:0 %}
+        <div style="margin-bottom:1rem;">
+            <div class="flex-between" style="margin-bottom:0.25rem;">
+                <span style="font-size:0.875rem;">Moderate risk</span>
+                <span style="font-size:0.875rem; color:var(--accent2);">
+                    {% if total %}{% widthratio level_counts.Moderate total 100 %}%{% else %}0%{% endif %}
+                </span>
+            </div>
+            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
+                <div style="height:100%; width:{% if total %}{% widthratio level_counts.Moderate total 100 %}{% else %}0{% endif %}%; background:var(--accent2); border-radius:5px;"></div>
+            </div>
+        </div>
+        {% endwith %}
+        <div>
+            <div class="flex-between" style="margin-bottom:0.25rem;">
+                <span style="font-size:0.875rem;">Low risk</span>
+                <span style="font-size:0.875rem; color:var(--positive);">
+                    {% if total %}{% widthratio level_counts.Low total 100 %}%{% else %}0%{% endif %}
+                </span>
+            </div>
+            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
+                <div style="height:100%; width:{% if total %}{% widthratio level_counts.Low total 100 %}{% else %}0{% endif %}%; background:var(--positive); border-radius:5px;"></div>
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align:center; padding:3rem;">
+        <p style="margin:0;">No responses have been submitted yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

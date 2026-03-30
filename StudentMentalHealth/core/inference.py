@@ -1,82 +1,118 @@
 """
-inference.py
-------------
-Single-student prediction pipeline (Django-ready)
+core/inference.py
+-----------------
+Single-student prediction using the trained Random Forest model.
+
+The model and feature template are loaded lazily on first call so that
+Django startup does not crash when the artefact files are absent.
 """
 
-import joblib
-import pandas as pd
-import numpy as np
-import sys
+from __future__ import annotations
+
 import os
+import sys
+from pathlib import Path
+from functools import lru_cache
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SRC_PATH = os.path.join(BASE_DIR, "src")
+import joblib
+import numpy as np
+import pandas as pd
 
-sys.path.append(SRC_PATH)
+# ---------------------------------------------------------------------------
+# Path resolution — works regardless of where Django is started from
+# ---------------------------------------------------------------------------
+
+_DJANGO_APP_DIR = Path(__file__).resolve().parent        # .../StudentMentalHealth/core/
+_DJANGO_ROOT    = _DJANGO_APP_DIR.parent                 # .../StudentMentalHealth/
+_PROJECT_ROOT   = _DJANGO_ROOT.parent                    # project root (contains pipeline.py)
+_SRC_DIR        = _PROJECT_ROOT / "src"
+_OUTPUTS_DIR    = _PROJECT_ROOT / "outputs"
+
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+
 from preprocessing import clean, build_model_matrix
 
 
 # ---------------------------------------------------------------------------
-# Load artefacts (load once in Django, not per request)
+# Lazy artefact loading
 # ---------------------------------------------------------------------------
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+@lru_cache(maxsize=1)
+def _load_artefacts() -> tuple:
+    """
+    Load model and feature template on first call and cache them.
+    Raises RuntimeError with a clear message if files are missing.
+    """
+    model_path    = _OUTPUTS_DIR / "rf.pkl"
+    template_path = _OUTPUTS_DIR / "feature_template.csv"
 
-MODEL_PATH = os.path.join(BASE_DIR, "..", "outputs", "rf.pkl")
-TEMPLATE_PATH = os.path.join(BASE_DIR, "..", "outputs", "feature_template.csv")
-MODEL_PATH = os.path.abspath(MODEL_PATH)
-TEMPLATE_PATH = os.path.abspath(TEMPLATE_PATH)
-model = joblib.load(MODEL_PATH)
-feature_template = pd.read_csv(TEMPLATE_PATH)
+    if not model_path.exists():
+        raise RuntimeError(
+            f"Model file not found: {model_path}\n"
+            "Run the pipeline first:  python pipeline.py --data data/raw/train.csv --output outputs/"
+        )
+    if not template_path.exists():
+        raise RuntimeError(
+            f"Feature template not found: {template_path}\n"
+            "Run the pipeline first:  python pipeline.py --data data/raw/train.csv --output outputs/"
+        )
+
+    model    = joblib.load(model_path)
+    template = pd.read_csv(template_path)
+    return model, template
 
 
 # ---------------------------------------------------------------------------
-# Core Inference Function
+# Public inference function
 # ---------------------------------------------------------------------------
 
 def predict_student(student_dict: dict) -> dict:
     """
-    Input:
-        student_dict → raw survey response (same structure as CSV row)
+    Run the depression risk model on a single student record.
 
-    Output:
-        {
-            "risk_score": float,
-            "prediction": int
-        }
+    Parameters
+    ----------
+    student_dict : dict
+        Raw survey field values matching the CSV column names.
+
+    Returns
+    -------
+    dict with keys:
+        risk_score : float   — model probability (0–1)
+        prediction : int     — 0 (low) or 1 (high)
+        risk_level : str     — "Low", "Moderate", or "High"
     """
+    model, feature_template = _load_artefacts()
 
-    # Step 1 — Convert to DataFrame
     df = pd.DataFrame([student_dict])
 
-    # Step 2 — Clean
     df = clean(df)
     if "Depression" not in df.columns:
-        df["Depression"] = 0  # dummy placeholder
+        df["Depression"] = 0
 
-    # Step 3 — Feature matrix
     X, _ = build_model_matrix(df)
 
-    # ------------------------------------------------------------------
-    # CRITICAL: Align with training schema
-    # ------------------------------------------------------------------
-
-    X_aligned = pd.DataFrame(columns=feature_template.columns)
-
+    # Align columns to the exact schema the model was trained on
+    X_aligned = pd.DataFrame(0, index=[0], columns=feature_template.columns)
     for col in feature_template.columns:
         if col in X.columns:
-            X_aligned[col] = X[col]
-        else:
-            X_aligned[col] = 0  # missing features default to 0
+            X_aligned[col] = X[col].values
 
-    X_aligned = X_aligned.fillna(0)
+    X_aligned = X_aligned.fillna(0).astype(float)
 
-    # Step 4 — Predict
-    prob = model.predict_proba(X_aligned)[0][1]
+    prob = float(model.predict_proba(X_aligned)[0][1])
     pred = int(prob >= 0.5)
 
+    if prob < 0.40:
+        level = "Low"
+    elif prob < 0.70:
+        level = "Moderate"
+    else:
+        level = "High"
+
     return {
-        "risk_score": float(prob),
-        "prediction": pred
+        "risk_score": round(prob, 4),
+        "prediction": pred,
+        "risk_level": level,
     }

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="container-wide">
+    <div class="flex-between" style="margin-bottom:1.5rem;">
+        <div>
+            <h1>Admin dashboard</h1>
+            <p style="margin:0;">Overview of all surveys and responses.</p>
+        </div>
+        <form method="post" action="{% url 'create_survey' %}" style="display:flex; gap:0.75rem;">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="New survey title" required
+                   style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:0.5rem 0.875rem; font-size:0.875rem; width:220px;">
+            <input type="text" name="desc" placeholder="Description (optional)"
+                   style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:0.5rem 0.875rem; font-size:0.875rem; width:200px;">
+            <button type="submit" class="btn btn-primary btn-sm">Create</button>
+        </form>
+    </div>
+
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-value">{{ surveys.count }}</div>
+            <div class="stat-label">Total surveys</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_responses }}</div>
+            <div class="stat-label">Total responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color:var(--accent);">{{ total_high_risk }}</div>
+            <div class="stat-label">High-risk flags</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Survey</th>
+                    <th>Responses</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for survey in surveys %}
+                <tr>
+                    <td>
+                        <strong>{{ survey.title }}</strong>
+                        {% if survey.description %}
+                        <br><span class="text-muted" style="font-size:0.8rem;">{{ survey.description|truncatechars:60 }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ survey.response_count }}</td>
+                    <td>
+                        {% if survey.is_active %}
+                            <span class="badge badge-low">Open</span>
+                        {% else %}
+                            <span class="badge" style="background:var(--card); color:var(--muted);">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted" style="font-size:0.8rem;">{{ survey.created_at|date:"d M Y" }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'survey_analytics' survey.id %}" class="btn btn-secondary btn-sm">Analytics</a>
+                        <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">Responses</a>
+                        <form method="post" action="{% url 'toggle_survey' survey.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary btn-sm">
+                                {% if survey.is_active %}Close{% else %}Reopen{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">No surveys yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

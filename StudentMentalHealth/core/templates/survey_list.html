@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Open Surveys{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="flex-between" style="margin-bottom:1.5rem;">
+        <div>
+            <h1>Open surveys</h1>
+            <p style="margin:0;">Select a survey to complete. Your responses are anonymous.</p>
+        </div>
+    </div>
+
+    {% if surveys %}
+        {% for survey in surveys %}
+        <div class="card flex-between">
+            <div>
+                <h2 style="margin-bottom:0.25rem;">{{ survey.title }}</h2>
+                {% if survey.description %}
+                <p style="margin:0; font-size:0.875rem;">{{ survey.description }}</p>
+                {% endif %}
+            </div>
+            <a href="{% url 'survey_form' survey.id %}" class="btn btn-primary btn-sm">Take survey</a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="text-align:center; padding:3rem;">
+            <p style="margin:0;">No surveys are currently open.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
