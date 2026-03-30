@@ -176,10 +176,107 @@ def run(data_path, output_dir, min_support, min_confidence,
         X_enriched = X.copy()
         _log("No rule features added.")
 
+        # ------------------------------------------------------------------
+    # 7. Model Training & Evaluation
     # ------------------------------------------------------------------
-    # 7. Visualisations
+    _section("Step 7 — Model Training & Evaluation")
+
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+    from sklearn.model_selection import train_test_split
+    import joblib
+    import json
+
+    # Use enriched features
+    X_model = X_enriched.copy()
+    y_model = y.copy()
+
+    _log(f"Training on enriched features: {X_model.shape}")
+
+    # Split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_model, y_model, test_size=0.2, random_state=42, stratify=y_model
+    )
+
+    # Train models
+    lr = LogisticRegression(max_iter=1000)
+    rf = RandomForestClassifier(n_estimators=100, random_state=42)
+
+    lr.fit(X_train, y_train)
+    rf.fit(X_train, y_train)
+
+    _log("Models trained.")
+
+    # Evaluate
+    def evaluate(model, X_test, y_test):
+        prob = model.predict_proba(X_test)[:, 1]
+        pred = (prob >= 0.5).astype(int)
+
+        return {
+            "accuracy": accuracy_score(y_test, pred),
+            "precision": precision_score(y_test, pred),
+            "recall": recall_score(y_test, pred),
+            "f1": f1_score(y_test, pred),
+            "roc_auc": roc_auc_score(y_test, prob)
+        }
+
+    lr_metrics = evaluate(lr, X_test, y_test)
+    rf_metrics = evaluate(rf, X_test, y_test)
+
+    metrics = {
+        "logistic_regression": lr_metrics,
+        "random_forest": rf_metrics
+    }
+
+    # Save models
+    joblib.dump(lr, os.path.join(output_dir, "lr.pkl"))
+    joblib.dump(rf, os.path.join(output_dir, "rf.pkl"))
+
+    # Save metrics
+    with open(os.path.join(output_dir, "metrics.json"), "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    _log("Models and metrics saved.")
+
+    _log(f"LR Metrics: {lr_metrics}")
+    _log(f"RF Metrics: {rf_metrics}")
+        # SHAP
+    _section("Step 7.1 — SHAP Analysis")
+
+    import shap
+    import matplotlib.pyplot as plt
+
+    _log("Sampling data for SHAP...")
+
+    sample_size = min(300, len(X_test))
+    X_sample = X_test.sample(n=sample_size, random_state=42)
+
+    explainer = shap.TreeExplainer(rf)
+
+    _log(f"Running SHAP on {len(X_sample)} samples...")
+    shap_values = explainer.shap_values(X_sample)
+
+    # Handle both SHAP output formats
+    if isinstance(shap_values, list):
+        shap_to_plot = shap_values[1]   # binary classification
+    else:
+        shap_to_plot = shap_values      # already correct shape
+
+    shap.summary_plot(shap_to_plot, X_sample, show=False)
+    plt.savefig(os.path.join(output_dir, "shap_summary.png"))
+    plt.close()
+
+    _log("SHAP summary saved.")
+    template_path = os.path.join(output_dir, "feature_template.csv")
+
+    X_model.head(1).to_csv(template_path, index=False)
+    
+    _log(f"Feature template saved -> {template_path}")
     # ------------------------------------------------------------------
-    _section("Step 7 — Generating Visualisations (14 charts)")
+    # 8. Visualisations
+    # ------------------------------------------------------------------
+    _section("Step 8 — Generating Visualisations (14 charts)")
 
     charts = [
         ("01 Target distribution",          lambda: plot_target_distribution(y, output_dir)),
@@ -203,11 +300,10 @@ def run(data_path, output_dir, min_support, min_confidence,
         result = fn()
         if result:
             _log(f"  -> {result}")
-
     # ------------------------------------------------------------------
-    # 8. Export artefacts
+    # 9. Export artefacts
     # ------------------------------------------------------------------
-    _section("Step 8 — Exporting Artefacts")
+    _section("Step 9 — Exporting Artefacts")
 
     if not rules_df.empty:
         p = os.path.join(output_dir, "association_rules.csv")

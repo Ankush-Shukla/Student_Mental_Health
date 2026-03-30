@@ -1,0 +1,14 @@
+<h2>{{ survey.title }}</h2>
+
+<p>Total Responses: {{ total }}</p>
+<p>High Risk: {{ high_risk }}</p>
+<p>Low Risk: {{ low_risk }}</p>
+<p>Average Risk Score: {{ avg_score }}</p>
+
+<hr>
+
+<h3>Insights</h3>
+
+<ul>
+    <li>High Risk %: {{ high_risk|floatformat:2 }}</li>
+</ul>

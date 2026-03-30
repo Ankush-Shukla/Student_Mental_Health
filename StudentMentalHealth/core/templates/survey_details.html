@@ -1,0 +1,11 @@
+<h2>{{ survey.title }}</h2>
+
+{% for response in responses %}
+    <div>
+        <hr>
+        <p>Student: {{ response.student.name }}</p>
+        <p>CGPA: {{ response.cgpa }}</p>
+        <p>Stress: {{ response.financial_stress }}</p>
+        <hr>
+    </div>
+{% endfor %}

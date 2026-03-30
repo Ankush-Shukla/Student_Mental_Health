@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Mental Health Survey</title>
+</head>
+<body>
+
+{% if user.is_superuser %}
+    <h2>Welcome, Admin!</h2>
+    <form method="post" action="/create-form/">
+        {% csrf_token %}
+      Title: <input type="text" name="title" required><br><br>
+      Description: <input type="text" name="desc" required><br><br>
+      <button type="submit" name="create_form">create a form</button>
+    </form>
+     {% for survey in surveys %}
+    <div>
+        <hr>
+        <a href="{{ survey.id }}" style="text-decoration: none;">
+            <p>ID: {{ survey.id }}</p>
+            <p>Title: {{ survey.title }}</p>
+        </a>
+        <hr>
+    </div>
+{% endfor %}
+{% else %}
+<h2>Student Survey</h2>
+
+<form method="POST" action="/submit/">
+    {% csrf_token %}
+
+    <h3>Basic Info</h3>
+    Name: <input type="text" name="name" required><br><br>
+    Email: <input type="email" name="email" required><br><br>
+
+    <h3>Survey</h3>
+    Id :<input type="text" name="id" required><br><br>
+    Age: <input type="number" name="Age" required><br><br>
+
+    Gender:
+    <select name="Gender">
+        <option>Male</option>
+        <option>Female</option>
+    </select><br><br>
+
+    CGPA: <input type="number" step="0.1" name="CGPA" required><br><br>
+
+    Academic Pressure (1-5):
+    <select name="Academic Pressure">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select><br><br>
+
+    Work Pressure (0-5):
+    <select name="Work Pressure">
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select><br><br>
+
+    Study Satisfaction (1-5):
+    <select name="Study Satisfaction">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select><br><br>
+
+    Job Satisfaction (0-5):
+    <select name="Job Satisfaction">
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select><br><br>
+
+    Work/Study Hours:
+    <input type="number" name="Work/Study Hours" ><br><br>
+
+    Sleep Duration:
+     <input type="number" name="Sleep Duration" ><br><br>
+
+    Dietary Habits:
+    <select name="Dietary Habits">
+        <option>Healthy</option>
+        <option>Unhealthy</option>
+    </select><br><br>
+
+    Suicidal Thoughts:
+    <select name="Have you ever had suicidal thoughts ?">
+        <option>Yes</option>
+        <option>No</option>
+    </select><br><br>
+
+    Family History:
+    <select name="Family History of Mental Illness">
+        <option>Yes</option>
+        <option>No</option>
+    </select><br><br>
+
+    Financial Stress:
+    <select name="Financial Stress">
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+    </select><br><br>
+  
+    <button type="submit">Submit</button>
+
+</form>
+{% endif %}
+
+
+</body>
+</html>
+

@@ -97,7 +97,8 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Deduplicate on id
-    df = df.drop_duplicates(subset="id")
+    if "id" in df.columns:
+        df = df.drop_duplicates(subset="id")
 
     return df
 
