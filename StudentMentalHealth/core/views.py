@@ -174,6 +174,7 @@ def submit_survey(request):
         "risk_score": result["risk_score"],
         "prediction": result["prediction"],
         "risk_level": result["risk_level"],
+        "student_name": data.get("name")
     }
 
     return redirect("result_page")
@@ -235,9 +236,10 @@ def survey_details(request, survey_id):
     responses = SurveyResponse.objects.filter(survey=survey).select_related(
         "student", "predictionresult"
     ).order_by("-created_at")
-
+    predictions = PredictionResult.objects.select_related("response__student")
     return render(request, "survey_details.html", {
         "survey":    survey,
+        "prediction": predictions,
         "responses": responses,
     })
 

@@ -1,11 +1,30 @@
-<h2>{{ survey.title }}</h2>
+{% extends "base.html" %}
+{% block title %}{{ survey.title }} — Details{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>{{ survey.title }}</h2>
+    <h3>{{ survey.description }}</h3>
+</div>
 
-{% for response in responses %}
-    <div>
-        <hr>
-        <p>Student: {{ response.student.name }}</p>
-        <p>CGPA: {{ response.cgpa }}</p>
-        <p>Stress: {{ response.financial_stress }}</p>
-        <hr>
-    </div>
+{% for p in prediction %}
+
+ <p class="card">
+    {% if p.risk_score >= 0.70 %}
+        Name: {{ p.response.student.name }} <br>
+         <text style="color : var(--negative)">RRisk Level: High <br></text>
+        Score: {{ p.risk_score }}
+
+    {% elif p.risk_score > 0.30 %}
+        Name: {{ p.response.student.name }} <br>
+        <text style="color : var(--neutral)">Risk Level: Moderate <br></text>
+        Score: {{ p.risk_score }}
+    {% else %}
+        Name: {{ p.response.student.name }} <br>
+         <text style="color : var(--positive)">Risk Level: Low <br></text>
+        Score: {{ p.risk_score }}
+    {% endif %}
+</p>
+    
 {% endfor %}
+
+{% endblock %}

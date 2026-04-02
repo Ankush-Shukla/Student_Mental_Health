@@ -8,16 +8,34 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --bg:       #0f0f1a;
-    --surface:  #1a1a2e;
-    --card:     #22223b;
-    --border:   #2e2e4a;
-    --accent:   #e63946;
+    --bg:       #121212;
+    --surface:  #121212;
+    --card:     #121212;
+    --border:   #D8B2B6;
+    --accent:   #f4a261;
     --accent2:  #f4a261;
-    --positive: #2a9d8f;
-    --text:     #edf2f4;
-    --muted:    #8d99ae;
+    --positive: #8FA36D;
+    --neutral: #eee239;
+    --negative: #e63946;
+    --text:     #d6d6d6;
+    --muted:    #b9b7b7;
+;
     --radius:   8px;
+}
+
+{
+#D8B2B6
+#E8E2D6
+#9AA97A
+#B8C59A
+#8FA36D
+#B4BE8C
+#D7D0A6
+#E3C7A6
+#A98C74
+#B79B83
+#E6D8C2
+#A9B18A
 }
 
 body {
@@ -141,17 +159,19 @@ tr:hover td { background: var(--card); }
 </head>
 <body>
 
-<nav class="navbar">
-    <a class="navbar-brand" href="/">Student Mental Health</a>
-    <div class="navbar-links">
-        {% if user.is_authenticated %}
-            {% if user.is_staff %}
-                <a href="{% url 'admin_dashboard' %}">Dashboard</a>
-            {% else %}
-                <a href="{% url 'survey_list' %}">Surveys</a>
+<nav class="navbar " >
+  
+        <a class="navbar-brand " href="/" >Student Mental Health</a>
+        <div class="navbar-links">
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                {% else %}
+                    <a href="{% url 'survey_list' %}">Surveys</a>
+                {% endif %}
+                <a href="{% url 'logout' %}">Log out</a>
             {% endif %}
-            <a href="{% url 'logout' %}">Log out</a>
-        {% endif %}
+  
     </div>
 </nav>
 

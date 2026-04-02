@@ -1,14 +1,21 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}{{ survey.title }} — Confirmation{% endblock %}
 <head>
     <title>Assessment Result</title>
 </head>
+{% block content %}
+
+
 <body>
 
-<h2>Depression Risk Result</h2>
+<div class="container" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <h2>Depression Risk Result</h2>
+    
+    <p><strong>Thanks {{ student_name }} for filling out our form </strong></p>
+    <p style="justify-content: center; text-align: center;">Your response has been successfully recorded and sent to concerned authority for further analysis we highly apreciate your cooperation</p>
+</div>
 
-<p><strong>Risk Score:</strong> {{ risk_score }}</p>
-<p><strong>Risk Level:</strong> {{ risk_level }}</p>
 
 </body>
-</html>
+{% endblock %}
+
