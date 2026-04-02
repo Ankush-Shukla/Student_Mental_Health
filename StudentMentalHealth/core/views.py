@@ -270,57 +270,71 @@ from collections import Counter, defaultdict
 from django.utils.timezone import localdate
 
 
+# Drop-in replacement for survey_analytics in core/views.py
+# Required imports at top of views.py:
+#   import json
+#   from collections import defaultdict
+#   from django.db.models import Avg, Count
+
 @login_required
 @user_passes_test(_is_admin)
 def survey_analytics(request, survey_id):
     survey      = get_object_or_404(Survey, id=survey_id)
     responses   = SurveyResponse.objects.filter(survey=survey)
-    predictions = PredictionResult.objects.filter(response__in=responses).select_related("response")
- 
+    predictions = PredictionResult.objects.filter(
+        response__in=responses
+    ).select_related("response")
+
     total     = predictions.count()
     high_risk = predictions.filter(prediction=1).count()
     avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
- 
+
     level_counts = {
         "Low":      predictions.filter(risk_level="Low").count(),
         "Moderate": predictions.filter(risk_level="Moderate").count(),
         "High":     predictions.filter(risk_level="High").count(),
     }
- 
-    # ── All risk scores (for CDF chart) ─────────────────────────────────────
+
+    high_pct     = round(high_risk / total * 100, 1) if total else 0
+    avg_score_pct = round(avg_score * 100, 1)
+
+    # ── Histogram ────────────────────────────────────────────────────────────
     all_scores = list(predictions.values_list("risk_score", flat=True))
- 
-    # ── Histogram buckets ────────────────────────────────────────────────────
     hist_buckets = [0, 0, 0, 0]
     for s in all_scores:
         if s < 0.25:   hist_buckets[0] += 1
         elif s < 0.5:  hist_buckets[1] += 1
         elif s < 0.75: hist_buckets[2] += 1
         else:          hist_buckets[3] += 1
- 
-    # ── Trend: daily counts split by risk level ──────────────────────────────
-    trend_low_d  = defaultdict(int)
-    trend_mod_d  = defaultdict(int)
-    trend_high_d = defaultdict(int)
+
+    # ── Trend ────────────────────────────────────────────────────────────────
     trend_total_d = defaultdict(int)
- 
-    for pred in predictions.select_related("response"):
+    for pred in predictions:
         day = pred.response.created_at.date().isoformat()
         trend_total_d[day] += 1
-        if pred.risk_level == "Low":      trend_low_d[day]  += 1
-        elif pred.risk_level == "Moderate": trend_mod_d[day] += 1
-        elif pred.risk_level == "High":   trend_high_d[day] += 1
- 
-    all_days = sorted(set(list(trend_total_d.keys())))
-    trend_labels = json.dumps(all_days)
-    trend_values = json.dumps([trend_total_d[d] for d in all_days])
-    trend_low    = json.dumps([trend_low_d[d]  for d in all_days])
-    trend_mod    = json.dumps([trend_mod_d[d]  for d in all_days])
-    trend_high_s = json.dumps([trend_high_d[d] for d in all_days])
- 
-    # avg_score as % of scale (0–1) for gauge fill width
-    avg_score_pct = round(avg_score * 100, 1)
- 
+
+    all_days = sorted(trend_total_d.keys())
+
+    # ── Print-friendly data ──────────────────────────────────────────────────
+    # bar_rows: list of (label, count, hex_color) for CSS print bars
+    bar_rows = [
+        ("Low Risk",      level_counts["Low"],      "#5a7a40"),
+        ("Moderate Risk", level_counts["Moderate"], "#c97a3a"),
+        ("High Risk",     level_counts["High"],     "#b53030"),
+    ]
+
+    # hist_rows for print histogram
+    hist_labels = ["0 – 0.25", "0.25 – 0.5", "0.5 – 0.75", "0.75 – 1.0"]
+    hist_colors = ["#5a7a40", "#b0a0a0", "#c97a3a", "#b53030"]
+    hist_rows = list(zip(hist_labels, hist_buckets, hist_colors))
+
+    # trend_pairs: list of (date_str, count) for print table
+    trend_pairs = [(d, trend_total_d[d]) for d in all_days]
+
+    # Donut percentages for CSS conic-gradient
+    low_pct     = round(level_counts["Low"]      / total * 100) if total else 0
+    low_mod_pct = round((level_counts["Low"] + level_counts["Moderate"]) / total * 100) if total else 0
+
     context = {
         "survey":        survey,
         "total":         total,
@@ -329,15 +343,17 @@ def survey_analytics(request, survey_id):
         "avg_score":     round(avg_score, 3),
         "avg_score_pct": avg_score_pct,
         "level_counts":  level_counts,
-        "high_pct":      round(high_risk / total * 100, 1) if total else 0,
-        # chart data
-        "trend_labels":  trend_labels,
-        "trend_values":  trend_values,
-        "trend_low":     trend_low,
-        "trend_mod":     trend_mod,
-        "trend_high":    trend_high_s,
+        "high_pct":      high_pct,
+        # chart.js data (screen)
+        "trend_labels":  json.dumps(all_days),
+        "trend_values":  json.dumps([trend_total_d[d] for d in all_days]),
         "hist_buckets":  json.dumps(hist_buckets),
-        "all_scores":    json.dumps([round(s, 4) for s in all_scores]),
+        # print-only data
+        "bar_rows":      bar_rows,
+        "hist_rows":     hist_rows,
+        "trend_pairs":   trend_pairs,
+        "low_pct":       low_pct,
+        "low_mod_pct":   low_mod_pct,
     }
     return render(request, "survey_analytics.html", context)
 

@@ -4,51 +4,40 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* ─── layout ─────────────────────────────────────── */
-.ag2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
-.ag3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
-@media (max-width: 860px) { .ag2, .ag3 { grid-template-columns: 1fr; } }
+/* ══════════════════════════════════════════════════
+   SCREEN layout
+══════════════════════════════════════════════════ */
+.ag2 { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+.ag3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+@media(max-width:860px){ .ag2,.ag3{ grid-template-columns:1fr; } }
 
-/* ─── chart card ─────────────────────────────────── */
-.cc {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.5rem;
-}
-.cc-title {
-  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); font-weight: 600; margin-bottom: 1rem;
-}
-.cw { position: relative; }
+.cc { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1.5rem; }
+.cc-title { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; margin-bottom:1rem; }
 
-/* ─── risk bars ──────────────────────────────────── */
-.rb-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; }
-.rb-meta { display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 0.8rem; }
-.rb-track { height: 7px; background: rgba(216,178,182,0.2); border-radius: 99px; overflow: hidden; }
-.rb-fill  { height: 100%; border-radius: 99px; }
+/* risk bars */
+.rb-list { display:flex; flex-direction:column; gap:1rem; margin-top:.5rem; }
+.rb-meta { display:flex; justify-content:space-between; margin-bottom:.3rem; font-size:.8rem; }
+.rb-track { height:7px; background:rgba(216,178,182,.2); border-radius:99px; overflow:hidden; }
+.rb-fill  { height:100%; border-radius:99px; }
 
-/* ─── gauge ──────────────────────────────────────── */
-.g-wrap  { display:flex; flex-direction:column; align-items:center; padding: 0.5rem 0 0.25rem; }
+/* gauge */
+.g-wrap  { display:flex; flex-direction:column; align-items:center; padding:.5rem 0 .25rem; }
 .g-num   { font-size:2.75rem; font-weight:700; color:var(--text); line-height:1; }
-.g-sub   { font-size:0.7rem; color:var(--muted); margin-top:0.25rem; text-transform:uppercase; letter-spacing:.07em; }
+.g-sub   { font-size:.7rem; color:var(--muted); margin-top:.25rem; text-transform:uppercase; letter-spacing:.07em; }
 .g-track { width:85%; height:7px; background:rgba(216,178,182,.2); border-radius:99px; margin-top:.9rem; overflow:hidden; }
 .g-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--positive),var(--accent),var(--negative)); }
 
-/* ─── insight ────────────────────────────────────── */
-.insight {
-  margin-top:1rem; background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:.75rem 1rem; font-size:.82rem; line-height:1.5;
-}
+/* insight */
+.insight { margin-top:1rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.75rem 1rem; font-size:.82rem; line-height:1.5; }
 .insight strong { color:var(--accent); }
 
-/* ─── snap tiles ─────────────────────────────────── */
+/* snap tiles */
 .snap-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:1rem; }
 .snap-tile { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.65rem .9rem; }
 .snap-tile .sl { font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
 .snap-tile .sv { font-size:1.35rem; font-weight:700; margin-top:.1rem; }
 
-/* ─── stat card accents ──────────────────────────── */
+/* stat card top accent */
 .stat-card { position:relative; overflow:hidden; }
 .stat-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:var(--radius) var(--radius) 0 0; }
 .s-tot::after { background:var(--accent2); }
@@ -57,36 +46,52 @@
 .s-hi::after  { background:var(--negative); }
 .s-avg::after { background:linear-gradient(90deg,var(--accent2),var(--negative)); }
 
-/* ─── PRINT ──────────────────────────────────────── */
-@media print {
-  /* hide interactive chrome */
-  .no-print, nav, .navbar { display:none !important; }
+/* canvas charts visible on screen */
+.screen-chart { display:block; }
+/* print-chart hidden on screen */
+.print-chart  { display:none; }
 
-  body { background:#fff !important; color:#111 !important; font-size:11pt; }
+/* ══════════════════════════════════════════════════
+   PRINT
+   Strategy: hide canvas, show pre-built SVG charts.
+   Use fixed A4-ish widths so nothing wraps.
+══════════════════════════════════════════════════ */
+@media print {
+  nav, .navbar, .no-print { display:none !important; }
+
+  body { background:#fff !important; color:#111 !important; font-size:10pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
   :root {
-    --bg:#fff; --surface:#fff; --card:#fff;
-    --border:#ddd; --text:#111; --muted:#555;
-    --accent:#c97a3a; --accent2:#c97a3a; --positive:#5a7a40;
-    --negative:#b53030; --neutral:#888;
+    --bg:#fff; --surface:#f7f7f5; --card:#fff;
+    --border:#ddd; --text:#111; --muted:#666;
+    --accent:#c97a3a; --accent2:#c97a3a;
+    --positive:#5a7a40; --negative:#b53030; --radius:6px;
   }
 
-  /* let the browser paginate naturally – never clip a card */
-  .cc, .stat-card, .card { page-break-inside: avoid; break-inside: avoid; }
+  .container-wide { max-width:100%; padding:.4cm 1cm; }
 
-  /* force 2-col grid to stack in print so each card fits a half-page width */
-  .ag2 { grid-template-columns: 1fr 1fr !important; gap:.6rem !important; }
-  .ag3 { grid-template-columns: 1fr 1fr 1fr !important; gap:.5rem !important; }
+  /* All grids: force 2-col at fixed widths */
+  .ag2, .ag3 { display:grid !important; gap:.4cm !important; margin-bottom:.4cm !important; }
+  .ag2 { grid-template-columns:1fr 1fr !important; }
+  .ag3 { grid-template-columns:1fr 1fr 1fr !important; }
 
-  /* shrink canvas so charts fit without clipping */
-  canvas { max-height: 160px !important; }
+  .cc { border:1px solid #ddd; padding:.35cm .45cm; break-inside:avoid; page-break-inside:avoid; }
+  .stat-card { break-inside:avoid; page-break-inside:avoid; }
+  .stat-row  { margin-bottom:.4cm !important; }
 
-  /* keep each row together on one page if possible */
-  .print-row { page-break-inside: avoid; break-inside: avoid; }
+  /* swap canvas ↔ svg */
+  .screen-chart { display:none !important; }
+  .print-chart  { display:block !important; }
 
-  /* force page break BEFORE major sections so charts land cleanly */
-  .pb-before { page-break-before: always; break-before: page; }
+  /* page breaks between logical sections */
+  .pb { page-break-before:always; break-before:page; margin-top:0 !important; }
 
-  a[href]:after { content: none !important; }
+  /* snap tiles in print */
+  .snap-tile { border:1px solid #ddd; }
+  .snap-tile .sv { font-size:1.1rem; }
+
+  /* insight box */
+  .insight { border:1px solid #ddd; }
 }
 </style>
 {% endblock %}
@@ -94,7 +99,7 @@
 {% block content %}
 <div class="container-wide">
 
-  <!-- ── header ── -->
+  <!-- header -->
   <div class="flex-between" style="margin-bottom:1.5rem;">
     <div>
       <h1>{{ survey.title }}</h1>
@@ -102,53 +107,48 @@
     </div>
     <div class="no-print" style="display:flex;gap:.6rem;flex-wrap:wrap;">
       <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">View responses</a>
-      <button onclick="window.print()" class="btn btn-secondary btn-sm">⬇ Export PDF</button>
+      <button onclick="printDash()" class="btn btn-secondary btn-sm">⬇ Export PDF</button>
       <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Back</a>
     </div>
   </div>
 
   {% if total == 0 %}
-  <div class="card" style="text-align:center;padding:3rem;">
-    <p style="margin:0;">No responses submitted yet.</p>
-  </div>
+  <div class="card" style="text-align:center;padding:3rem;"><p style="margin:0;">No responses yet.</p></div>
   {% else %}
 
-  <!-- ══ KPI strip ══ -->
-  <div class="print-row">
-    <div class="stat-row" style="margin-bottom:1.25rem;">
-      <div class="stat-card s-tot">
-        <div class="stat-value" style="color:var(--accent2);">{{ total }}</div>
-        <div class="stat-label">Total Responses</div>
-      </div>
-      <div class="stat-card s-low">
-        <div class="stat-value" style="color:var(--positive);">{{ level_counts.Low }}</div>
-        <div class="stat-label">Low Risk</div>
-      </div>
-      <div class="stat-card s-mod">
-        <div class="stat-value" style="color:var(--accent);">{{ level_counts.Moderate }}</div>
-        <div class="stat-label">Moderate Risk</div>
-      </div>
-      <div class="stat-card s-hi">
-        <div class="stat-value" style="color:var(--negative);">{{ level_counts.High }}</div>
-        <div class="stat-label">High Risk</div>
-      </div>
-      <div class="stat-card s-avg">
-        <div class="stat-value">{{ avg_score }}</div>
-        <div class="stat-label">Avg Risk Score</div>
-      </div>
-    </div>
+  <!-- KPI strip -->
+  <div class="stat-row" style="margin-bottom:1.25rem;">
+    <div class="stat-card s-tot"><div class="stat-value" style="color:var(--accent2);">{{ total }}</div><div class="stat-label">Total Responses</div></div>
+    <div class="stat-card s-low"><div class="stat-value" style="color:var(--positive);">{{ level_counts.Low }}</div><div class="stat-label">Low Risk</div></div>
+    <div class="stat-card s-mod"><div class="stat-value" style="color:var(--accent);">{{ level_counts.Moderate }}</div><div class="stat-label">Moderate Risk</div></div>
+    <div class="stat-card s-hi"><div class="stat-value"  style="color:var(--negative);">{{ level_counts.High }}</div><div class="stat-label">High Risk</div></div>
+    <div class="stat-card s-avg"><div class="stat-value">{{ avg_score }}</div><div class="stat-label">Avg Risk Score</div></div>
   </div>
 
-  <!-- ══ Row 1 · Donut | Risk bars | Gauge ══ -->
-  <div class="print-row ag3">
+  <!-- ── Row 1: Donut | Risk bars | Gauge ── -->
+  <div class="ag3">
 
+    <!-- Donut -->
     <div class="cc">
       <div class="cc-title">Risk Share</div>
-      <div class="cw" style="height:180px;">
-        <canvas id="donutChart"></canvas>
+      <!-- screen -->
+      <div class="screen-chart" style="height:180px;"><canvas id="donutChart"></canvas></div>
+      <!-- print: CSS donut via conic-gradient -->
+      <div class="print-chart" style="display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:.3cm 0;">
+        <div style="width:110px;height:110px;border-radius:50%;background:conic-gradient(
+          #5a7a40 0% {{ low_pct }}%,
+          #c97a3a {{ low_pct }}% {{ low_mod_pct }}%,
+          #b53030 {{ low_mod_pct }}% 100%
+        );"></div>
+        <div style="display:flex;gap:.6rem;font-size:8pt;flex-wrap:wrap;justify-content:center;">
+          <span><span style="color:#5a7a40;">■</span> Low {{ level_counts.Low }}</span>
+          <span><span style="color:#c97a3a;">■</span> Mod {{ level_counts.Moderate }}</span>
+          <span><span style="color:#b53030;">■</span> High {{ level_counts.High }}</span>
+        </div>
       </div>
     </div>
 
+    <!-- Risk bars -->
     <div class="cc">
       <div class="cc-title">Risk Distribution</div>
       <div class="rb-list" style="margin-top:.75rem;">
@@ -167,6 +167,7 @@
       </div>
     </div>
 
+    <!-- Gauge -->
     <div class="cc">
       <div class="cc-title">Mean Risk Score</div>
       <div class="g-wrap">
@@ -186,69 +187,69 @@
     </div>
   </div>
 
-  <!-- ══ Row 2 · Bar | Trend ══ -->
-  <div class="print-row ag2 pb-before">
-
+  <!-- ── Row 2: Bar | Trend ── -->
+  <div class="ag2">
     <div class="cc">
       <div class="cc-title">Risk Level Breakdown</div>
-      <div class="cw" style="height:200px;">
-        <canvas id="barChart"></canvas>
+      <div class="screen-chart" style="height:200px;"><canvas id="barChart"></canvas></div>
+      <!-- print bar chart -->
+      <div class="print-chart" style="padding:.2cm 0;">
+        {% with maxv=level_counts.Low %}
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          {% for label,count,color in bar_rows %}
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2px;"><span>{{ label }}</span><span>{{ count }}</span></div>
+            <div style="height:14px;background:#eee;border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:{% widthratio count total 100 %}%;background:{{ color }};border-radius:3px;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endwith %}
       </div>
     </div>
 
     <div class="cc">
       <div class="cc-title">Response Trend Over Time</div>
-      <div class="cw" style="height:200px;">
-        <canvas id="trendChart"></canvas>
+      <div class="screen-chart" style="height:200px;"><canvas id="trendChart"></canvas></div>
+      <!-- print trend: table -->
+      <div class="print-chart" style="margin-top:.3cm;">
+        <table>
+          <thead><tr><th>Date</th><th>Responses</th></tr></thead>
+          <tbody>
+            {% for d,v in trend_pairs %}
+            <tr><td>{{ d }}</td><td>{{ v }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- ══ Row 3 · Histogram | Cumulative score ══ -->
-  <div class="print-row ag2">
-
+  <!-- ── Row 3: Histogram | Score table ── -->
+  <div class="ag2">
     <div class="cc">
       <div class="cc-title">Risk Score Histogram</div>
-      <div class="cw" style="height:200px;">
-        <canvas id="histChart"></canvas>
+      <div class="screen-chart" style="height:200px;"><canvas id="histChart"></canvas></div>
+      <!-- print histogram bars -->
+      <div class="print-chart" style="padding:.2cm 0;">
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          {% for label,count,color in hist_rows %}
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2px;"><span>{{ label }}</span><span>{{ count }}</span></div>
+            <div style="height:14px;background:#eee;border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:{% if total %}{% widthratio count total 100 %}{% else %}0{% endif %}%;background:{{ color }};border-radius:3px;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
     </div>
-
-    <div class="cc">
-      <div class="cc-title">Cumulative Risk Score Distribution</div>
-      <div class="cw" style="height:200px;">
-        <canvas id="cdfChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Row 4 · Radar | Stacked bar ══ -->
-  <div class="print-row ag2 pb-before">
-
-    <div class="cc">
-      <div class="cc-title">Risk Profile Radar</div>
-      <div class="cw" style="height:220px;">
-        <canvas id="radarChart"></canvas>
-      </div>
-    </div>
-
-    <div class="cc">
-      <div class="cc-title">Response Volume by Risk (Stacked)</div>
-      <div class="cw" style="height:220px;">
-        <canvas id="stackedChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ Row 5 · Summary table | Snap tiles ══ -->
-  <div class="print-row ag2">
 
     <div class="cc">
       <div class="cc-title">Risk Split Summary</div>
       <table>
-        <thead>
-          <tr><th>Risk Type</th><th>Count</th><th>Share</th><th>Action</th></tr>
-        </thead>
+        <thead><tr><th>Risk Type</th><th>Count</th><th>Share</th><th>Action</th></tr></thead>
         <tbody>
           <tr>
             <td><span class="badge badge-low">Low</span></td>
@@ -277,164 +278,62 @@
         <div class="snap-tile"><div class="sl">High %</div><div class="sv" style="color:var(--accent);">{{ high_pct }}%</div></div>
       </div>
     </div>
-
-    <div class="cc">
-      <div class="cc-title">Score Band Analysis</div>
-      <div class="cw" style="height:200px;">
-        <canvas id="polarChart"></canvas>
-      </div>
-    </div>
   </div>
 
   {% endif %}
 </div>
 
 <script>
-// ── Chart.js defaults matching base.html palette ──
-Chart.defaults.color         = '#b9b7b7';
-Chart.defaults.font.family   = "'Segoe UI', system-ui, sans-serif";
-Chart.defaults.borderColor   = 'rgba(216,178,182,0.12)';
+Chart.defaults.color       = '#b9b7b7';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.borderColor = 'rgba(216,178,182,0.12)';
+const CL='#8FA36D', CM='#f4a261', CH='#e63946', CA='#D8B2B6';
 
-const CL = '#8FA36D', CM = '#f4a261', CH = '#e63946', CA = '#D8B2B6';
+const low={{ level_counts.Low }}, mod={{ level_counts.Moderate }}, high={{ level_counts.High }}, total={{ total }};
+const trendLabels={{ trend_labels|safe }};
+const trendValues={{ trend_values|safe }};
+const histBuckets={{ hist_buckets|safe }};
 
-const low   = {{ level_counts.Low }};
-const mod   = {{ level_counts.Moderate }};
-const high  = {{ level_counts.High }};
-const total = {{ total }};
-
-const trendLabels = {{ trend_labels|safe }};
-const trendValues = {{ trend_values|safe }};
-const histBuckets = {{ hist_buckets|safe }};   // [b0,b1,b2,b3]
-const allScores   = {{ all_scores|safe }};      // flat list of floats
-
-// ── Donut ──────────────────────────────────────────
-new Chart(document.getElementById('donutChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Low','Moderate','High'],
-    datasets: [{ data:[low,mod,high],
-      backgroundColor:[CL,CM,CH], borderWidth:2, borderColor:'#121212', hoverOffset:5 }]
-  },
-  options: { cutout:'65%', responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:11, font:{size:11} } },
-      tooltip:{ callbacks:{ label: c => ` ${c.label}: ${c.raw} (${((c.raw/total)*100).toFixed(1)}%)` }}}}
+new Chart(document.getElementById('donutChart'),{
+  type:'doughnut',
+  data:{ labels:['Low','Moderate','High'], datasets:[{ data:[low,mod,high], backgroundColor:[CL,CM,CH], borderWidth:2, borderColor:'#121212', hoverOffset:5 }]},
+  options:{ cutout:'65%', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:11, font:{size:11} }},
+      tooltip:{ callbacks:{ label:c=>` ${c.label}: ${c.raw} (${((c.raw/total)*100).toFixed(1)}%)`}}}}
 });
 
-// ── Bar ────────────────────────────────────────────
-new Chart(document.getElementById('barChart'), {
+new Chart(document.getElementById('barChart'),{
   type:'bar',
   data:{ labels:['Low Risk','Moderate Risk','High Risk'],
     datasets:[{ label:'Students', data:[low,mod,high],
       backgroundColor:['rgba(143,163,109,.7)','rgba(244,162,97,.7)','rgba(230,57,70,.7)'],
       borderColor:[CL,CM,CH], borderWidth:1.5, borderRadius:6, borderSkipped:false }]},
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ display:false } },
-    scales:{ x:{ grid:{display:false} }, y:{ beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'} }}}
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.1)'}}}}
 });
 
-// ── Trend ──────────────────────────────────────────
-new Chart(document.getElementById('trendChart'), {
+new Chart(document.getElementById('trendChart'),{
   type:'line',
-  data:{ labels:trendLabels,
-    datasets:[{ label:'Responses', data:trendValues,
-      borderColor:CA, backgroundColor:'rgba(216,178,182,.1)', fill:true,
-      tension:.4, pointBackgroundColor:CA, pointRadius:4, pointHoverRadius:6 }]},
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false} },
-    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'}}}}
+  data:{ labels:trendLabels, datasets:[{ label:'Responses', data:trendValues,
+    borderColor:CA, backgroundColor:'rgba(216,178,182,.1)', fill:true,
+    tension:.4, pointBackgroundColor:CA, pointRadius:4, pointHoverRadius:6 }]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.1)'}}}}
 });
 
-// ── Histogram ──────────────────────────────────────
-new Chart(document.getElementById('histChart'), {
+new Chart(document.getElementById('histChart'),{
   type:'bar',
   data:{ labels:['0–0.25','0.25–0.5','0.5–0.75','0.75–1.0'],
     datasets:[{ label:'Students', data:histBuckets,
       backgroundColor:['rgba(143,163,109,.75)','rgba(216,178,182,.75)','rgba(244,162,97,.75)','rgba(230,57,70,.75)'],
       borderRadius:6, borderSkipped:false }]},
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'}}}}
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.1)'}}}}
 });
 
-// ── CDF (cumulative) ───────────────────────────────
-(function(){
-  const sorted = [...allScores].sort((a,b)=>a-b);
-  const pts = sorted.map((v,i)=>({ x: parseFloat(v.toFixed(3)), y: parseFloat(((i+1)/sorted.length*100).toFixed(1)) }));
-  new Chart(document.getElementById('cdfChart'), {
-    type:'line',
-    data:{ datasets:[{ label:'Cumulative %', data:pts,
-      borderColor:CM, backgroundColor:'rgba(244,162,97,.1)', fill:true,
-      tension:.3, pointRadius:3, pointHoverRadius:5, pointBackgroundColor:CM }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      parsing:false,
-      plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label: c=>`Score ${c.parsed.x} → ${c.parsed.y}% of students` }}},
-      scales:{
-        x:{ type:'linear', min:0, max:1, title:{display:true, text:'Risk Score', color:'#b9b7b7', font:{size:10}}, grid:{color:'rgba(216,178,182,.1)'}},
-        y:{ min:0, max:100, title:{display:true, text:'Cumulative %', color:'#b9b7b7', font:{size:10}}, grid:{color:'rgba(216,178,182,.1)'},
-          ticks:{ callback: v=>v+'%' }}}}
-  });
-})();
-
-// ── Radar ──────────────────────────────────────────
-new Chart(document.getElementById('radarChart'), {
-  type:'radar',
-  data:{
-    labels:['Low Risk','Moderate Risk','High Risk','Avg Score ×10','High % ×10'],
-    datasets:[{
-      label:'Cohort profile',
-      data:[ low, mod, high, parseFloat(({{ avg_score }}*10).toFixed(1)), parseFloat(({{ high_pct }})).toFixed(1) ],
-      backgroundColor:'rgba(216,178,182,.15)',
-      borderColor:CA, pointBackgroundColor:CA, pointRadius:4
-    }]
-  },
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false} },
-    scales:{ r:{ beginAtZero:true,
-      grid:{ color:'rgba(216,178,182,.15)' },
-      angleLines:{ color:'rgba(216,178,182,.2)' },
-      pointLabels:{ font:{size:10}, color:'#b9b7b7' },
-      ticks:{ display:false }
-    }}}
-});
-
-// ── Stacked bar (per-date risk split) ─────────────
-(function(){
-  const stackLabels = {{ trend_labels|safe }};
-  const stackLow    = {{ trend_low|safe }};
-  const stackMod    = {{ trend_mod|safe }};
-  const stackHigh   = {{ trend_high|safe }};
-  new Chart(document.getElementById('stackedChart'), {
-    type:'bar',
-    data:{ labels: stackLabels,
-      datasets:[
-        { label:'Low',      data:stackLow,  backgroundColor:'rgba(143,163,109,.8)', borderRadius:4, borderSkipped:false },
-        { label:'Moderate', data:stackMod,  backgroundColor:'rgba(244,162,97,.8)',  borderRadius:4, borderSkipped:false },
-        { label:'High',     data:stackHigh, backgroundColor:'rgba(230,57,70,.8)',   borderRadius:4, borderSkipped:false },
-      ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, padding:10, font:{size:10} }}},
-      scales:{
-        x:{ stacked:true, grid:{display:false} },
-        y:{ stacked:true, beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'} }
-      }}
-  });
-})();
-
-// ── Polar area (score bands) ───────────────────────
-new Chart(document.getElementById('polarChart'), {
-  type:'polarArea',
-  data:{
-    labels:['0–0.25 (Safe)','0.25–0.5 (Low)','0.5–0.75 (Mod)','0.75–1.0 (High)'],
-    datasets:[{ data: histBuckets,
-      backgroundColor:['rgba(143,163,109,.7)','rgba(216,178,182,.7)','rgba(244,162,97,.7)','rgba(230,57,70,.7)'],
-      borderColor:[CL,CA,CM,CH], borderWidth:1.5
-    }]
-  },
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, padding:10, font:{size:10} }}},
-    scales:{ r:{ beginAtZero:true, grid:{color:'rgba(216,178,182,.15)'}, ticks:{display:false} }}
-  }
-});
+// Wait for all charts to render before allowing print
+function printDash() {
+  setTimeout(() => window.print(), 400);
+}
 </script>
 {% endblock %}
