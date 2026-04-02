@@ -236,13 +236,25 @@ def survey_details(request, survey_id):
     responses = SurveyResponse.objects.filter(survey=survey).select_related(
         "student", "predictionresult"
     ).order_by("-created_at")
-    predictions = PredictionResult.objects.select_related("response__student")
+    predictions = PredictionResult.objects.select_related("response__student").order_by("-risk_score")
     return render(request, "survey_details.html", {
         "survey":    survey,
         "prediction": predictions,
         "responses": responses,
     })
 
+
+def student_detail(request, id):
+    response = SurveyResponse.objects.select_related(
+        "student", "survey", "predictionresult"
+    ).get(id=id)
+
+    prediction = getattr(response, "predictionresult", None)
+
+    return render(request, "student_detail.html", {
+        "response": response,
+        "prediction": prediction,
+    })
 
 @login_required
 @user_passes_test(_is_admin)

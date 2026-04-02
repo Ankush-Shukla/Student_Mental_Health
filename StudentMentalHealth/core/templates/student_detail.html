@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ survey.title }} — Details{% endblock %}
+
+{% block content %}
+
+
+<div class="card">
+    <h1>Student Details</h1>
+
+    <p><strong>Name:</strong> {{ response.student.name }}</p>
+    <p><strong>Email:</strong> {{ response.student.email }}</p>
+    <p><strong>Survey:</strong> {{ response.survey.title }}</p>
+    <p><strong>Date:</strong> {{ response.created_at }}</p>
+
+    <hr>
+
+    <h1>Survey Response</h1>
+
+    <p>Age: {{ response.age }}</p>
+    <p>Gender: {{ response.gender }}</p>
+    <p>CGPA: {{ response.cgpa }}</p>
+    <p>Academic Pressure: {{ response.academic_pressure }}</p>
+    <p>Work Pressure: {{ response.work_pressure }}</p>
+    <p>Study Satisfaction: {{ response.study_satisfaction }}</p>
+    <p>Job Satisfaction: {{ response.job_satisfaction }}</p>
+    <p>Work/Study Hours: {{ response.work_study_hours }}</p>
+    <p>Sleep Duration: {{ response.sleep_duration }}</p>
+    <p>Dietary Habits: {{ response.dietary_habits }}</p>
+    <p>Suicidal Thoughts: {{ response.suicidal_thoughts }}</p>
+    <p>Family History: {{ response.family_history }}</p>
+    <p>Financial Stress: {{ response.financial_stress }}</p>
+
+    <hr>
+
+    <h1>Prediction Result</h1>
+
+    {% if prediction %}
+        <p>
+            <strong>Risk Level:</strong>
+            <span class="
+                {% if prediction.risk_level == 'High' %}high
+                {% elif prediction.risk_level == 'Moderate' %}moderate
+                {% else %}low
+                {% endif %}
+            ">
+                {{ prediction.risk_level }}
+            </span>
+        </p>
+
+        <p><strong>Risk Score:</strong> {{ prediction.risk_score }}</p>
+    {% else %}
+        <p>No prediction available.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

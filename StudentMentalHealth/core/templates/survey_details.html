@@ -5,13 +5,13 @@
     <h2>{{ survey.title }}</h2>
     <h3>{{ survey.description }}</h3>
 </div>
-
+ 
 {% for p in prediction %}
-
- <p class="card">
+<a href="{% url 'student_detail' p.response.id %}" class="link" >
+ <p class="card" >
     {% if p.risk_score >= 0.70 %}
         Name: {{ p.response.student.name }} <br>
-         <text style="color : var(--negative)">RRisk Level: High <br></text>
+         <text style="color : var(--negative)">Risk Level: High <br></text>
         Score: {{ p.risk_score }}
 
     {% elif p.risk_score > 0.30 %}
@@ -23,8 +23,11 @@
          <text style="color : var(--positive)">Risk Level: Low <br></text>
         Score: {{ p.risk_score }}
     {% endif %}
-</p>
     
+       
+    
+</p>
+   </a> 
 {% endfor %}
 
 {% endblock %}
