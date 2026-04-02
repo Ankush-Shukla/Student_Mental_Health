@@ -1,84 +1,440 @@
 {% extends "base.html" %}
 {% block title %}{{ survey.title }} — Analytics{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ─── layout ─────────────────────────────────────── */
+.ag2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+.ag3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+@media (max-width: 860px) { .ag2, .ag3 { grid-template-columns: 1fr; } }
+
+/* ─── chart card ─────────────────────────────────── */
+.cc {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+}
+.cc-title {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); font-weight: 600; margin-bottom: 1rem;
+}
+.cw { position: relative; }
+
+/* ─── risk bars ──────────────────────────────────── */
+.rb-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; }
+.rb-meta { display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 0.8rem; }
+.rb-track { height: 7px; background: rgba(216,178,182,0.2); border-radius: 99px; overflow: hidden; }
+.rb-fill  { height: 100%; border-radius: 99px; }
+
+/* ─── gauge ──────────────────────────────────────── */
+.g-wrap  { display:flex; flex-direction:column; align-items:center; padding: 0.5rem 0 0.25rem; }
+.g-num   { font-size:2.75rem; font-weight:700; color:var(--text); line-height:1; }
+.g-sub   { font-size:0.7rem; color:var(--muted); margin-top:0.25rem; text-transform:uppercase; letter-spacing:.07em; }
+.g-track { width:85%; height:7px; background:rgba(216,178,182,.2); border-radius:99px; margin-top:.9rem; overflow:hidden; }
+.g-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--positive),var(--accent),var(--negative)); }
+
+/* ─── insight ────────────────────────────────────── */
+.insight {
+  margin-top:1rem; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:.75rem 1rem; font-size:.82rem; line-height:1.5;
+}
+.insight strong { color:var(--accent); }
+
+/* ─── snap tiles ─────────────────────────────────── */
+.snap-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:1rem; }
+.snap-tile { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.65rem .9rem; }
+.snap-tile .sl { font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+.snap-tile .sv { font-size:1.35rem; font-weight:700; margin-top:.1rem; }
+
+/* ─── stat card accents ──────────────────────────── */
+.stat-card { position:relative; overflow:hidden; }
+.stat-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:var(--radius) var(--radius) 0 0; }
+.s-tot::after { background:var(--accent2); }
+.s-low::after { background:var(--positive); }
+.s-mod::after { background:var(--accent); }
+.s-hi::after  { background:var(--negative); }
+.s-avg::after { background:linear-gradient(90deg,var(--accent2),var(--negative)); }
+
+/* ─── PRINT ──────────────────────────────────────── */
+@media print {
+  /* hide interactive chrome */
+  .no-print, nav, .navbar { display:none !important; }
+
+  body { background:#fff !important; color:#111 !important; font-size:11pt; }
+  :root {
+    --bg:#fff; --surface:#fff; --card:#fff;
+    --border:#ddd; --text:#111; --muted:#555;
+    --accent:#c97a3a; --accent2:#c97a3a; --positive:#5a7a40;
+    --negative:#b53030; --neutral:#888;
+  }
+
+  /* let the browser paginate naturally – never clip a card */
+  .cc, .stat-card, .card { page-break-inside: avoid; break-inside: avoid; }
+
+  /* force 2-col grid to stack in print so each card fits a half-page width */
+  .ag2 { grid-template-columns: 1fr 1fr !important; gap:.6rem !important; }
+  .ag3 { grid-template-columns: 1fr 1fr 1fr !important; gap:.5rem !important; }
+
+  /* shrink canvas so charts fit without clipping */
+  canvas { max-height: 160px !important; }
+
+  /* keep each row together on one page if possible */
+  .print-row { page-break-inside: avoid; break-inside: avoid; }
+
+  /* force page break BEFORE major sections so charts land cleanly */
+  .pb-before { page-break-before: always; break-before: page; }
+
+  a[href]:after { content: none !important; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="flex-between" style="margin-bottom:1.5rem;">
-        <div>
-            <h1>{{ survey.title }}</h1>
-            <p style="margin:0;">Response analytics</p>
-        </div>
-        <div style="display:flex; gap:0.75rem;">
-            <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">View responses</a>
-            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">Back</a>
-        </div>
+<div class="container-wide">
+
+  <!-- ── header ── -->
+  <div class="flex-between" style="margin-bottom:1.5rem;">
+    <div>
+      <h1>{{ survey.title }}</h1>
+      <p style="margin:0;">Response analytics &nbsp;·&nbsp; {{ total }} total submissions</p>
+    </div>
+    <div class="no-print" style="display:flex;gap:.6rem;flex-wrap:wrap;">
+      <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">View responses</a>
+      <button onclick="window.print()" class="btn btn-secondary btn-sm">⬇ Export PDF</button>
+      <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Back</a>
+    </div>
+  </div>
+
+  {% if total == 0 %}
+  <div class="card" style="text-align:center;padding:3rem;">
+    <p style="margin:0;">No responses submitted yet.</p>
+  </div>
+  {% else %}
+
+  <!-- ══ KPI strip ══ -->
+  <div class="print-row">
+    <div class="stat-row" style="margin-bottom:1.25rem;">
+      <div class="stat-card s-tot">
+        <div class="stat-value" style="color:var(--accent2);">{{ total }}</div>
+        <div class="stat-label">Total Responses</div>
+      </div>
+      <div class="stat-card s-low">
+        <div class="stat-value" style="color:var(--positive);">{{ level_counts.Low }}</div>
+        <div class="stat-label">Low Risk</div>
+      </div>
+      <div class="stat-card s-mod">
+        <div class="stat-value" style="color:var(--accent);">{{ level_counts.Moderate }}</div>
+        <div class="stat-label">Moderate Risk</div>
+      </div>
+      <div class="stat-card s-hi">
+        <div class="stat-value" style="color:var(--negative);">{{ level_counts.High }}</div>
+        <div class="stat-label">High Risk</div>
+      </div>
+      <div class="stat-card s-avg">
+        <div class="stat-value">{{ avg_score }}</div>
+        <div class="stat-label">Avg Risk Score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Row 1 · Donut | Risk bars | Gauge ══ -->
+  <div class="print-row ag3">
+
+    <div class="cc">
+      <div class="cc-title">Risk Share</div>
+      <div class="cw" style="height:180px;">
+        <canvas id="donutChart"></canvas>
+      </div>
     </div>
 
-    <div class="stat-row">
-        <div class="stat-card">
-            <div class="stat-value">{{ total }}</div>
-            <div class="stat-label">Total responses</div>
+    <div class="cc">
+      <div class="cc-title">Risk Distribution</div>
+      <div class="rb-list" style="margin-top:.75rem;">
+        <div>
+          <div class="rb-meta"><span style="color:var(--positive);">Low</span><span class="text-muted">{{ level_counts.Low }} · {% widthratio level_counts.Low total 100 %}%</span></div>
+          <div class="rb-track"><div class="rb-fill" style="width:{% widthratio level_counts.Low total 100 %}%;background:var(--positive);"></div></div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" style="color:var(--positive);">{{ level_counts.Low }}</div>
-            <div class="stat-label">Low risk</div>
+        <div>
+          <div class="rb-meta"><span style="color:var(--accent);">Moderate</span><span class="text-muted">{{ level_counts.Moderate }} · {% widthratio level_counts.Moderate total 100 %}%</span></div>
+          <div class="rb-track"><div class="rb-fill" style="width:{% widthratio level_counts.Moderate total 100 %}%;background:var(--accent);"></div></div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" style="color:var(--accent2);">{{ level_counts.Moderate }}</div>
-            <div class="stat-label">Moderate risk</div>
+        <div>
+          <div class="rb-meta"><span style="color:var(--negative);">High</span><span class="text-muted">{{ level_counts.High }} · {{ high_pct }}%</span></div>
+          <div class="rb-track"><div class="rb-fill" style="width:{{ high_pct }}%;background:var(--negative);"></div></div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" style="color:var(--accent);">{{ level_counts.High }}</div>
-            <div class="stat-label">High risk</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ avg_score }}</div>
-            <div class="stat-label">Mean risk score</div>
-        </div>
+      </div>
     </div>
 
-    {% if total > 0 %}
-    <div class="card">
-        <h2>Risk distribution</h2>
-        {% with high_w=level_counts.High|floatformat:0 mod_w=level_counts.Moderate|floatformat:0 low_w=level_counts.Low|floatformat:0 %}
-        <div style="margin-bottom:1rem;">
-            <div class="flex-between" style="margin-bottom:0.25rem;">
-                <span style="font-size:0.875rem;">High risk</span>
-                <span style="font-size:0.875rem; color:var(--accent);">{{ high_pct }}%</span>
-            </div>
-            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
-                <div style="height:100%; width: {{ high_pct }}; background:var(--accent); border-radius:5px;"></div>
-            </div>
+    <div class="cc">
+      <div class="cc-title">Mean Risk Score</div>
+      <div class="g-wrap">
+        <div class="g-num">{{ avg_score }}</div>
+        <div class="g-sub">avg · 0.0 → 1.0</div>
+        <div class="g-track"><div class="g-fill" style="width:{{ avg_score_pct }}%;"></div></div>
+        <div style="display:flex;justify-content:space-between;width:85%;margin-top:.3rem;">
+          <span style="font-size:.68rem;color:var(--muted);">0.0 Safe</span>
+          <span style="font-size:.68rem;color:var(--muted);">1.0 Critical</span>
         </div>
-        {% with mod_pct=level_counts.Moderate|default:0 %}
-        <div style="margin-bottom:1rem;">
-            <div class="flex-between" style="margin-bottom:0.25rem;">
-                <span style="font-size:0.875rem;">Moderate risk</span>
-                <span style="font-size:0.875rem; color:var(--accent2);">
-                    {% if total %}{% widthratio level_counts.Moderate total 100 %}%{% else %}0%{% endif %}
-                </span>
-            </div>
-            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
-                <div style="height:100%; width:{% if total %}{% widthratio level_counts.Moderate total 100 %}{% else %}0{% endif %}%; background:var(--accent2); border-radius:5px;"></div>
-            </div>
-        </div>
-        {% endwith %}
-        <div>
-            <div class="flex-between" style="margin-bottom:0.25rem;">
-                <span style="font-size:0.875rem;">Low risk</span>
-                <span style="font-size:0.875rem; color:var(--positive);">
-                    {% if total %}{% widthratio level_counts.Low total 100 %}%{% else %}0%{% endif %}
-                </span>
-            </div>
-            <div style="height:10px; background:var(--card); border-radius:5px; overflow:hidden;">
-                <div style="height:100%; width:{% if total %}{% widthratio level_counts.Low total 100 %}{% else %}0{% endif %}%; background:var(--positive); border-radius:5px;"></div>
-            </div>
-        </div>
-        {% endwith %}
+      </div>
+      <div class="insight">
+        {% if high_pct >= 30 %}⚠️ <strong>Elevated.</strong> {{ high_pct }}% high-risk — immediate review.
+        {% elif high_pct >= 15 %}⚑ <strong>Moderate concern.</strong> {{ high_pct }}% high-risk — monitor flagged.
+        {% else %}✓ <strong>Stable cohort.</strong> Low-risk majority.{% endif %}
+      </div>
     </div>
-    {% else %}
-    <div class="card" style="text-align:center; padding:3rem;">
-        <p style="margin:0;">No responses have been submitted yet.</p>
+  </div>
+
+  <!-- ══ Row 2 · Bar | Trend ══ -->
+  <div class="print-row ag2 pb-before">
+
+    <div class="cc">
+      <div class="cc-title">Risk Level Breakdown</div>
+      <div class="cw" style="height:200px;">
+        <canvas id="barChart"></canvas>
+      </div>
     </div>
-    {% endif %}
+
+    <div class="cc">
+      <div class="cc-title">Response Trend Over Time</div>
+      <div class="cw" style="height:200px;">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Row 3 · Histogram | Cumulative score ══ -->
+  <div class="print-row ag2">
+
+    <div class="cc">
+      <div class="cc-title">Risk Score Histogram</div>
+      <div class="cw" style="height:200px;">
+        <canvas id="histChart"></canvas>
+      </div>
+    </div>
+
+    <div class="cc">
+      <div class="cc-title">Cumulative Risk Score Distribution</div>
+      <div class="cw" style="height:200px;">
+        <canvas id="cdfChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Row 4 · Radar | Stacked bar ══ -->
+  <div class="print-row ag2 pb-before">
+
+    <div class="cc">
+      <div class="cc-title">Risk Profile Radar</div>
+      <div class="cw" style="height:220px;">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="cc">
+      <div class="cc-title">Response Volume by Risk (Stacked)</div>
+      <div class="cw" style="height:220px;">
+        <canvas id="stackedChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Row 5 · Summary table | Snap tiles ══ -->
+  <div class="print-row ag2">
+
+    <div class="cc">
+      <div class="cc-title">Risk Split Summary</div>
+      <table>
+        <thead>
+          <tr><th>Risk Type</th><th>Count</th><th>Share</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-low">Low</span></td>
+            <td>{{ level_counts.Low }}</td>
+            <td>{% widthratio level_counts.Low total 100 %}%</td>
+            <td style="color:var(--positive);font-size:.75rem;">✓ Stable</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-moderate">Moderate</span></td>
+            <td>{{ level_counts.Moderate }}</td>
+            <td>{% widthratio level_counts.Moderate total 100 %}%</td>
+            <td style="color:var(--accent);font-size:.75rem;">⚑ Monitor</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-high">High</span></td>
+            <td>{{ level_counts.High }}</td>
+            <td>{{ high_pct }}%</td>
+            <td style="color:var(--negative);font-size:.75rem;">⚠ Intervene</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="snap-grid">
+        <div class="snap-tile"><div class="sl">Total</div><div class="sv" style="color:var(--accent2);">{{ total }}</div></div>
+        <div class="snap-tile"><div class="sl">High Risk</div><div class="sv" style="color:var(--negative);">{{ level_counts.High }}</div></div>
+        <div class="snap-tile"><div class="sl">Avg Score</div><div class="sv">{{ avg_score }}</div></div>
+        <div class="snap-tile"><div class="sl">High %</div><div class="sv" style="color:var(--accent);">{{ high_pct }}%</div></div>
+      </div>
+    </div>
+
+    <div class="cc">
+      <div class="cc-title">Score Band Analysis</div>
+      <div class="cw" style="height:200px;">
+        <canvas id="polarChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
 </div>
+
+<script>
+// ── Chart.js defaults matching base.html palette ──
+Chart.defaults.color         = '#b9b7b7';
+Chart.defaults.font.family   = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.borderColor   = 'rgba(216,178,182,0.12)';
+
+const CL = '#8FA36D', CM = '#f4a261', CH = '#e63946', CA = '#D8B2B6';
+
+const low   = {{ level_counts.Low }};
+const mod   = {{ level_counts.Moderate }};
+const high  = {{ level_counts.High }};
+const total = {{ total }};
+
+const trendLabels = {{ trend_labels|safe }};
+const trendValues = {{ trend_values|safe }};
+const histBuckets = {{ hist_buckets|safe }};   // [b0,b1,b2,b3]
+const allScores   = {{ all_scores|safe }};      // flat list of floats
+
+// ── Donut ──────────────────────────────────────────
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Low','Moderate','High'],
+    datasets: [{ data:[low,mod,high],
+      backgroundColor:[CL,CM,CH], borderWidth:2, borderColor:'#121212', hoverOffset:5 }]
+  },
+  options: { cutout:'65%', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{ padding:12, boxWidth:11, font:{size:11} } },
+      tooltip:{ callbacks:{ label: c => ` ${c.label}: ${c.raw} (${((c.raw/total)*100).toFixed(1)}%)` }}}}
+});
+
+// ── Bar ────────────────────────────────────────────
+new Chart(document.getElementById('barChart'), {
+  type:'bar',
+  data:{ labels:['Low Risk','Moderate Risk','High Risk'],
+    datasets:[{ label:'Students', data:[low,mod,high],
+      backgroundColor:['rgba(143,163,109,.7)','rgba(244,162,97,.7)','rgba(230,57,70,.7)'],
+      borderColor:[CL,CM,CH], borderWidth:1.5, borderRadius:6, borderSkipped:false }]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ grid:{display:false} }, y:{ beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'} }}}
+});
+
+// ── Trend ──────────────────────────────────────────
+new Chart(document.getElementById('trendChart'), {
+  type:'line',
+  data:{ labels:trendLabels,
+    datasets:[{ label:'Responses', data:trendValues,
+      borderColor:CA, backgroundColor:'rgba(216,178,182,.1)', fill:true,
+      tension:.4, pointBackgroundColor:CA, pointRadius:4, pointHoverRadius:6 }]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'}}}}
+});
+
+// ── Histogram ──────────────────────────────────────
+new Chart(document.getElementById('histChart'), {
+  type:'bar',
+  data:{ labels:['0–0.25','0.25–0.5','0.5–0.75','0.75–1.0'],
+    datasets:[{ label:'Students', data:histBuckets,
+      backgroundColor:['rgba(143,163,109,.75)','rgba(216,178,182,.75)','rgba(244,162,97,.75)','rgba(230,57,70,.75)'],
+      borderRadius:6, borderSkipped:false }]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'}}}}
+});
+
+// ── CDF (cumulative) ───────────────────────────────
+(function(){
+  const sorted = [...allScores].sort((a,b)=>a-b);
+  const pts = sorted.map((v,i)=>({ x: parseFloat(v.toFixed(3)), y: parseFloat(((i+1)/sorted.length*100).toFixed(1)) }));
+  new Chart(document.getElementById('cdfChart'), {
+    type:'line',
+    data:{ datasets:[{ label:'Cumulative %', data:pts,
+      borderColor:CM, backgroundColor:'rgba(244,162,97,.1)', fill:true,
+      tension:.3, pointRadius:3, pointHoverRadius:5, pointBackgroundColor:CM }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      parsing:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: c=>`Score ${c.parsed.x} → ${c.parsed.y}% of students` }}},
+      scales:{
+        x:{ type:'linear', min:0, max:1, title:{display:true, text:'Risk Score', color:'#b9b7b7', font:{size:10}}, grid:{color:'rgba(216,178,182,.1)'}},
+        y:{ min:0, max:100, title:{display:true, text:'Cumulative %', color:'#b9b7b7', font:{size:10}}, grid:{color:'rgba(216,178,182,.1)'},
+          ticks:{ callback: v=>v+'%' }}}}
+  });
+})();
+
+// ── Radar ──────────────────────────────────────────
+new Chart(document.getElementById('radarChart'), {
+  type:'radar',
+  data:{
+    labels:['Low Risk','Moderate Risk','High Risk','Avg Score ×10','High % ×10'],
+    datasets:[{
+      label:'Cohort profile',
+      data:[ low, mod, high, parseFloat(({{ avg_score }}*10).toFixed(1)), parseFloat(({{ high_pct }})).toFixed(1) ],
+      backgroundColor:'rgba(216,178,182,.15)',
+      borderColor:CA, pointBackgroundColor:CA, pointRadius:4
+    }]
+  },
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{ r:{ beginAtZero:true,
+      grid:{ color:'rgba(216,178,182,.15)' },
+      angleLines:{ color:'rgba(216,178,182,.2)' },
+      pointLabels:{ font:{size:10}, color:'#b9b7b7' },
+      ticks:{ display:false }
+    }}}
+});
+
+// ── Stacked bar (per-date risk split) ─────────────
+(function(){
+  const stackLabels = {{ trend_labels|safe }};
+  const stackLow    = {{ trend_low|safe }};
+  const stackMod    = {{ trend_mod|safe }};
+  const stackHigh   = {{ trend_high|safe }};
+  new Chart(document.getElementById('stackedChart'), {
+    type:'bar',
+    data:{ labels: stackLabels,
+      datasets:[
+        { label:'Low',      data:stackLow,  backgroundColor:'rgba(143,163,109,.8)', borderRadius:4, borderSkipped:false },
+        { label:'Moderate', data:stackMod,  backgroundColor:'rgba(244,162,97,.8)',  borderRadius:4, borderSkipped:false },
+        { label:'High',     data:stackHigh, backgroundColor:'rgba(230,57,70,.8)',   borderRadius:4, borderSkipped:false },
+      ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, padding:10, font:{size:10} }}},
+      scales:{
+        x:{ stacked:true, grid:{display:false} },
+        y:{ stacked:true, beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(216,178,182,.1)'} }
+      }}
+  });
+})();
+
+// ── Polar area (score bands) ───────────────────────
+new Chart(document.getElementById('polarChart'), {
+  type:'polarArea',
+  data:{
+    labels:['0–0.25 (Safe)','0.25–0.5 (Low)','0.5–0.75 (Mod)','0.75–1.0 (High)'],
+    datasets:[{ data: histBuckets,
+      backgroundColor:['rgba(143,163,109,.7)','rgba(216,178,182,.7)','rgba(244,162,97,.7)','rgba(230,57,70,.7)'],
+      borderColor:[CL,CA,CM,CH], borderWidth:1.5
+    }]
+  },
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, padding:10, font:{size:10} }}},
+    scales:{ r:{ beginAtZero:true, grid:{color:'rgba(216,178,182,.15)'}, ticks:{display:false} }}
+  }
+});
+</script>
 {% endblock %}

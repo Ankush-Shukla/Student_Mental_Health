@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-
+import numpy as np
 from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
@@ -256,36 +256,90 @@ def student_detail(request, id):
         "prediction": prediction,
     })
 
+from collections import Counter
+from django.db.models.functions import TruncDate
+
+# Replace the existing survey_analytics view in core/views.py with this version.
+# Also add this import at the top if not already present:
+#   import json
+#   from collections import Counter
+#   from django.utils.timezone import localdate
+
+import json
+from collections import Counter, defaultdict
+from django.utils.timezone import localdate
+
+
 @login_required
 @user_passes_test(_is_admin)
 def survey_analytics(request, survey_id):
     survey      = get_object_or_404(Survey, id=survey_id)
     responses   = SurveyResponse.objects.filter(survey=survey)
-    predictions = PredictionResult.objects.filter(response__in=responses)
-
+    predictions = PredictionResult.objects.filter(response__in=responses).select_related("response")
+ 
     total     = predictions.count()
     high_risk = predictions.filter(prediction=1).count()
-    low_risk  = total - high_risk
     avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
-
-    # Risk level breakdown
+ 
     level_counts = {
         "Low":      predictions.filter(risk_level="Low").count(),
         "Moderate": predictions.filter(risk_level="Moderate").count(),
         "High":     predictions.filter(risk_level="High").count(),
     }
-
+ 
+    # ── All risk scores (for CDF chart) ─────────────────────────────────────
+    all_scores = list(predictions.values_list("risk_score", flat=True))
+ 
+    # ── Histogram buckets ────────────────────────────────────────────────────
+    hist_buckets = [0, 0, 0, 0]
+    for s in all_scores:
+        if s < 0.25:   hist_buckets[0] += 1
+        elif s < 0.5:  hist_buckets[1] += 1
+        elif s < 0.75: hist_buckets[2] += 1
+        else:          hist_buckets[3] += 1
+ 
+    # ── Trend: daily counts split by risk level ──────────────────────────────
+    trend_low_d  = defaultdict(int)
+    trend_mod_d  = defaultdict(int)
+    trend_high_d = defaultdict(int)
+    trend_total_d = defaultdict(int)
+ 
+    for pred in predictions.select_related("response"):
+        day = pred.response.created_at.date().isoformat()
+        trend_total_d[day] += 1
+        if pred.risk_level == "Low":      trend_low_d[day]  += 1
+        elif pred.risk_level == "Moderate": trend_mod_d[day] += 1
+        elif pred.risk_level == "High":   trend_high_d[day] += 1
+ 
+    all_days = sorted(set(list(trend_total_d.keys())))
+    trend_labels = json.dumps(all_days)
+    trend_values = json.dumps([trend_total_d[d] for d in all_days])
+    trend_low    = json.dumps([trend_low_d[d]  for d in all_days])
+    trend_mod    = json.dumps([trend_mod_d[d]  for d in all_days])
+    trend_high_s = json.dumps([trend_high_d[d] for d in all_days])
+ 
+    # avg_score as % of scale (0–1) for gauge fill width
+    avg_score_pct = round(avg_score * 100, 1)
+ 
     context = {
-        "survey":       survey,
-        "total":        total,
-        "high_risk":    high_risk,
-        "low_risk":     low_risk,
-        "avg_score":    round(avg_score, 3),
-        "level_counts": level_counts,
-        "high_pct":     round(high_risk / total * 100, 1) if total else 0,
+        "survey":        survey,
+        "total":         total,
+        "high_risk":     high_risk,
+        "low_risk":      total - high_risk,
+        "avg_score":     round(avg_score, 3),
+        "avg_score_pct": avg_score_pct,
+        "level_counts":  level_counts,
+        "high_pct":      round(high_risk / total * 100, 1) if total else 0,
+        # chart data
+        "trend_labels":  trend_labels,
+        "trend_values":  trend_values,
+        "trend_low":     trend_low,
+        "trend_mod":     trend_mod,
+        "trend_high":    trend_high_s,
+        "hist_buckets":  json.dumps(hist_buckets),
+        "all_scores":    json.dumps([round(s, 4) for s in all_scores]),
     }
     return render(request, "survey_analytics.html", context)
-
 
 @login_required
 @user_passes_test(_is_admin)
