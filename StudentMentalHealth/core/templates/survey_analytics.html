@@ -4,121 +4,90 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* ── bento grid ─────────────────────────────────── */
-.bento {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: minmax(0, auto);
-  gap: .75rem;
-  margin-bottom: .75rem;
-}
-.b1  { grid-column: span 4; }
-.b2  { grid-column: span 6; }
-.b3  { grid-column: span 3; }
-.b4  { grid-column: span 12; }
-.b5  { grid-column: span 5; }
-.b7  { grid-column: span 7; }
-.b6  { grid-column: span 6; }
-@media(max-width:900px){ .b1,.b2,.b3,.b4,.b5,.b6,.b7{ grid-column:span 12; } }
+/* ── bento grid ─────────────────────────── */
+.bento { display:grid; grid-template-columns:repeat(12,1fr); gap:.75rem; margin-bottom:.75rem; }
+.b3  { grid-column:span 3; }
+.b4  { grid-column:span 4; }
+.b5  { grid-column:span 5; }
+.b6  { grid-column:span 6; }
+.b7  { grid-column:span 7; }
+.b8  { grid-column:span 8; }
+.b12 { grid-column:span 12; }
+@media(max-width:900px){ .b3,.b4,.b5,.b6,.b7,.b8,.b12{ grid-column:span 12; } }
 
-/* ── tile ───────────────────────────────────────── */
-.tile {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-}
-.tile-label {
-  font-size: .68rem; text-transform: uppercase;
-  letter-spacing: .08em; color: var(--muted); font-weight: 600;
-  margin-bottom: .5rem;
-}
-.tile-val {
-  font-size: 2.4rem; font-weight: 700; line-height: 1;
-}
-.tile-sub { font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+/* ── tile ───────────────────────────────── */
+.tile { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; display:flex; flex-direction:column; }
+.tile-label { font-size:.67rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; margin-bottom:.4rem; }
+.tile-val   { font-size:2.4rem; font-weight:700; line-height:1; }
+.tile-sub   { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
+.t-tot { border-top:3px solid var(--accent2); }
+.t-low { border-top:3px solid var(--positive); }
+.t-mod { border-top:3px solid var(--accent); }
+.t-hi  { border-top:3px solid var(--negative); }
+.t-avg { border-top:3px solid #D8B2B6; }
 
-/* accent tops */
-.t-tot { border-top: 3px solid var(--accent2); }
-.t-low { border-top: 3px solid var(--positive); }
-.t-mod { border-top: 3px solid var(--accent); }
-.t-hi  { border-top: 3px solid var(--negative); }
-.t-avg { border-top: 3px solid #D8B2B6; }
-
-/* ── risk bars ──────────────────────────────────── */
-.rb { display:flex; flex-direction:column; gap:.75rem; flex:1; justify-content:center; }
-.rb-meta { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:.25rem; }
+/* ── risk bars ──────────────────────────── */
+.rb { display:flex; flex-direction:column; gap:.85rem; flex:1; justify-content:center; }
+.rb-meta  { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:.22rem; }
 .rb-track { height:7px; background:rgba(216,178,182,.18); border-radius:99px; overflow:hidden; }
-.rb-fill  { height:100%; border-radius:99px; transition:width .5s; }
+.rb-fill  { height:100%; border-radius:99px; }
 
-/* ── gauge ──────────────────────────────────────── */
-.gauge-wrap { display:flex; flex-direction:column; align-items:center; flex:1; justify-content:center; gap:.4rem; }
-.gauge-num  { font-size:2.6rem; font-weight:700; line-height:1; }
-.gauge-sub  { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
-.gauge-bar  { width:100%; height:7px; background:rgba(216,178,182,.18); border-radius:99px; overflow:hidden; margin-top:.3rem; }
-.gauge-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--positive),var(--accent),var(--negative)); }
-.gauge-ends { display:flex; justify-content:space-between; font-size:.66rem; color:var(--muted); margin-top:.2rem; }
+/* ── gauge ──────────────────────────────── */
+.gauge { display:flex; flex-direction:column; align-items:center; flex:1; justify-content:center; gap:.3rem; }
+.gauge-num { font-size:2.6rem; font-weight:700; line-height:1; }
+.gauge-sub { font-size:.67rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+.gauge-bar { width:100%; height:7px; background:rgba(216,178,182,.18); border-radius:99px; overflow:hidden; margin-top:.4rem; }
+.gauge-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--positive),var(--accent),var(--negative)); }
 
-/* ── insight ────────────────────────────────────── */
+/* ── insight ────────────────────────────── */
 .insight { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.6rem .85rem; font-size:.8rem; line-height:1.5; margin-top:.75rem; }
 .insight strong { color:var(--accent); }
 
-/* ── snap tiles (2×2) ───────────────────────────── */
-.snap4 { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.6rem; }
+/* ── snap 2×2 ───────────────────────────── */
+.snap4 { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.75rem; }
 .snap-t { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.55rem .75rem; }
 .snap-l { font-size:.63rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
-.snap-v { font-size:1.25rem; font-weight:700; margin-top:.1rem; }
+.snap-v { font-size:1.2rem; font-weight:700; margin-top:.1rem; }
 
-/* ── chart canvas wrappers ──────────────────────── */
+/* ── chart helpers ──────────────────────── */
 .ch { position:relative; flex:1; min-height:0; }
-canvas { display:block; width:100% !important; }
-
-/* ── screen vs print visibility ─────────────────── */
 .screen-only { display:block; }
 .print-only  { display:none; }
 
-/* ════════════════════════════════════════════════
-   PRINT  –  white background, compact bento
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   PRINT — white, compact, no canvas
+═══════════════════════════════════════════ */
 @media print {
-  nav, .navbar, .no-print { display:none !important; }
+  nav,.navbar,.no-print { display:none !important; }
 
-  /* force white */
-  html, body { background:#fff !important; color:#111 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body { background:#fff !important; color:#111 !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
   :root {
     --bg:#fff !important; --surface:#f5f5f3 !important; --card:#fff !important;
-    --border:#d8d8d8 !important; --text:#111 !important; --muted:#555 !important;
-    --accent:#c07a30 !important; --accent2:#c07a30 !important;
-    --positive:#4a7030 !important; --negative:#a83030 !important;
-    --radius:5px !important;
+    --border:#d4d4d4 !important; --text:#111 !important; --muted:#555 !important;
+    --accent:#b8722a !important; --accent2:#b8722a !important;
+    --positive:#476b2f !important; --negative:#9e2b2b !important; --radius:5px !important;
   }
 
   .container-wide { max-width:100%; padding:.3cm .6cm; }
-
-  /* bento: tightly packed 12-col grid at print width */
   .bento { gap:.3cm !important; margin-bottom:.3cm !important; }
+  .b3,.b4,.b5,.b6,.b7,.b8 { grid-column:span 6 !important; }
+  .b12 { grid-column:span 12 !important; }
   .tile { padding:.3cm .4cm !important; break-inside:avoid; page-break-inside:avoid; }
-  .tile-val { font-size:1.8rem !important; }
-
-  /* show/hide */
+  .tile-val { font-size:1.7rem !important; }
   .screen-only { display:none !important; }
   .print-only  { display:block !important; }
 
-  /* print bar: simple filled div */
-  .p-bar-row { margin-bottom:.25cm; }
+  /* print bar */
+  .p-bar-row { margin-bottom:.2cm; }
   .p-bar-label { display:flex; justify-content:space-between; font-size:8pt; margin-bottom:2pt; }
-  .p-bar-track { height:10pt; background:#e8e8e8; border-radius:3pt; overflow:hidden; }
+  .p-bar-track { height:9pt; background:#e4e4e4; border-radius:3pt; overflow:hidden; }
   .p-bar-fill  { height:100%; border-radius:3pt; }
 
-  /* donut → CSS conic */
-  .p-donut { width:90pt; height:90pt; border-radius:50%; margin:6pt auto; }
+  /* css donut */
+  .p-donut { width:80pt; height:80pt; border-radius:50%; margin:4pt auto; }
 
-  /* section page break */
-  .pb { page-break-before:always; break-before:page; }
-
-  /* no link underlines */
   a[href]:after { content:none !important; }
 }
 </style>
@@ -128,10 +97,10 @@ canvas { display:block; width:100% !important; }
 <div class="container-wide">
 
   <!-- header -->
-  <div class="flex-between no-print" style="margin-bottom:1rem;">
+  <div class="flex-between no-print" style="margin-bottom:1.25rem;">
     <div>
       <h1 style="margin-bottom:.15rem;">{{ survey.title }}</h1>
-      <p style="margin:0;">Response analytics · {{ total }} total submissions</p>
+      <p style="margin:0;">Response analytics &nbsp;·&nbsp; {{ total }} total submissions</p>
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
       <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm">View responses</a>
@@ -139,119 +108,95 @@ canvas { display:block; width:100% !important; }
       <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Back</a>
     </div>
   </div>
-  <!-- print-only header -->
   <div class="print-only" style="margin-bottom:.4cm;">
-    <div style="font-size:16pt;font-weight:700;">{{ survey.title }} — Analytics</div>
-    <div style="font-size:9pt;color:#555;">{{ total }} total submissions</div>
+    <div style="font-size:15pt;font-weight:700;">{{ survey.title }} — Analytics Report</div>
+    <div style="font-size:9pt;color:#555;">{{ total }} submissions</div>
   </div>
 
   {% if total == 0 %}
-  <div class="tile" style="text-align:center;padding:3rem;"><p style="margin:0;">No responses yet.</p></div>
+  <div class="tile b12"><p style="margin:0;text-align:center;padding:2rem;">No responses submitted yet.</p></div>
   {% else %}
 
-  <!-- ── ROW 1: 5 KPI tiles ── -->
+  <!-- ── KPI strip ── -->
   <div class="bento">
-    <div class="tile t-tot b1">
+    <div class="tile t-tot b3">
       <div class="tile-label">Total Responses</div>
       <div class="tile-val" style="color:var(--accent2);">{{ total }}</div>
       <div class="tile-sub">All submissions</div>
     </div>
-    <div class="tile t-low b1">
+    <div class="tile t-low b3">
       <div class="tile-label">Low Risk</div>
       <div class="tile-val" style="color:var(--positive);">{{ level_counts.Low }}</div>
       <div class="tile-sub">{% widthratio level_counts.Low total 100 %}% of cohort</div>
     </div>
-    <div class="tile t-mod b1">
+    <div class="tile t-mod b3">
       <div class="tile-label">Moderate Risk</div>
       <div class="tile-val" style="color:var(--accent);">{{ level_counts.Moderate }}</div>
       <div class="tile-sub">{% widthratio level_counts.Moderate total 100 %}% of cohort</div>
     </div>
-    <div class="tile t-hi b1">
+    <div class="tile t-hi b3">
       <div class="tile-label">High Risk</div>
       <div class="tile-val" style="color:var(--negative);">{{ level_counts.High }}</div>
       <div class="tile-sub">{{ high_pct }}% — portfolio signal</div>
     </div>
-    <div class="tile t-avg" style="grid-column:span 8;">
-      <div class="tile-label">Mean Risk Score</div>
-      <div class="gauge-wrap" style="flex-direction:row;align-items:center;gap:1.5rem;flex:1;">
-        <div style="font-size:2.8rem;font-weight:700;">{{ avg_score }}</div>
-        <div style="flex:1;">
-          <div class="gauge-bar"><div class="gauge-fill" style="width:{{ avg_score_pct }}%;"></div></div>
-          <div class="gauge-ends"><span>0.0 Safe</span><span>1.0 Critical</span></div>
-          <div class="insight" style="margin-top:.5rem;">
-            {% if high_pct >= 30 %}⚠️ <strong>Elevated.</strong> {{ high_pct }}% high-risk — immediate review.
-            {% elif high_pct >= 15 %}⚑ <strong>Moderate concern.</strong> {{ high_pct }}% high-risk — monitor flagged students.
-            {% else %}✓ <strong>Stable cohort.</strong> Low-risk majority across {{ total }} submissions.{% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <!-- ── ROW 2: Donut | Risk bars | Hist ── -->
+  <!-- ── Row 2: Donut | Bars | Gauge+Insight ── -->
   <div class="bento">
-
-    <!-- Donut -->
     <div class="tile b3" style="min-height:220px;">
       <div class="tile-label">Risk Share</div>
-      <!-- screen -->
-      <div class="ch screen-only" style="height:170px;">
-        <canvas id="donutChart"></canvas>
-      </div>
-      <!-- print -->
+      <div class="ch screen-only" style="height:175px;"><canvas id="donutChart"></canvas></div>
       <div class="print-only" style="text-align:center;padding:.2cm 0;">
-        <div class="p-donut" style="background:conic-gradient(#4a7030 0% {{ low_pct }}%, #c07a30 {{ low_pct }}% {{ low_mod_pct }}%, #a83030 {{ low_mod_pct }}% 100%);"></div>
-        <div style="font-size:8pt;display:flex;justify-content:center;gap:.5cm;margin-top:.15cm;">
-          <span style="color:#4a7030;">■ Low {{ level_counts.Low }}</span>
-          <span style="color:#c07a30;">■ Mod {{ level_counts.Moderate }}</span>
-          <span style="color:#a83030;">■ High {{ level_counts.High }}</span>
+        <div class="p-donut" style="background:conic-gradient(#476b2f 0% {{ low_pct }}%,#b8722a {{ low_pct }}% {{ low_mod_pct }}%,#9e2b2b {{ low_mod_pct }}% 100%);"></div>
+        <div style="font-size:7.5pt;display:flex;justify-content:center;gap:.4cm;margin-top:.15cm;flex-wrap:wrap;">
+          <span><span style="color:#476b2f;">■</span> Low {{ level_counts.Low }}</span>
+          <span><span style="color:#b8722a;">■</span> Mod {{ level_counts.Moderate }}</span>
+          <span><span style="color:#9e2b2b;">■</span> High {{ level_counts.High }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Risk bars -->
     <div class="tile b3" style="min-height:220px;">
       <div class="tile-label">Risk Distribution</div>
       <div class="rb">
         <div>
-          <div class="rb-meta"><span style="color:var(--positive);">Low Risk</span><span class="text-muted">{{ level_counts.Low }} · {% widthratio level_counts.Low total 100 %}%</span></div>
+          <div class="rb-meta"><span style="color:var(--positive);">Low</span><span class="text-muted">{{ level_counts.Low }} · {% widthratio level_counts.Low total 100 %}%</span></div>
           <div class="rb-track"><div class="rb-fill" style="width:{% widthratio level_counts.Low total 100 %}%;background:var(--positive);"></div></div>
         </div>
         <div>
-          <div class="rb-meta"><span style="color:var(--accent);">Moderate Risk</span><span class="text-muted">{{ level_counts.Moderate }} · {% widthratio level_counts.Moderate total 100 %}%</span></div>
+          <div class="rb-meta"><span style="color:var(--accent);">Moderate</span><span class="text-muted">{{ level_counts.Moderate }} · {% widthratio level_counts.Moderate total 100 %}%</span></div>
           <div class="rb-track"><div class="rb-fill" style="width:{% widthratio level_counts.Moderate total 100 %}%;background:var(--accent);"></div></div>
         </div>
         <div>
-          <div class="rb-meta"><span style="color:var(--negative);">High Risk</span><span class="text-muted">{{ level_counts.High }} · {{ high_pct }}%</span></div>
+          <div class="rb-meta"><span style="color:var(--negative);">High</span><span class="text-muted">{{ level_counts.High }} · {{ high_pct }}%</span></div>
           <div class="rb-track"><div class="rb-fill" style="width:{{ high_pct }}%;background:var(--negative);"></div></div>
         </div>
       </div>
     </div>
 
-    <!-- Histogram -->
     <div class="tile b6" style="min-height:220px;">
-      <div class="tile-label">Risk Score Histogram</div>
-      <div class="ch screen-only" style="height:170px;">
-        <canvas id="histChart"></canvas>
-      </div>
-      <div class="print-only" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.2cm;">
-        {% for label,count,color in hist_rows %}
-        <div class="p-bar-row">
-          <div class="p-bar-label"><span>{{ label }}</span><span>{{ count }}</span></div>
-          <div class="p-bar-track"><div class="p-bar-fill" style="width:{% if total %}{% widthratio count total 100 %}{% else %}0{% endif %}%;background:{{ color }};"></div></div>
+      <div class="tile-label">Mean Risk Score</div>
+      <div class="gauge">
+        <div class="gauge-num">{{ avg_score }}</div>
+        <div class="gauge-sub">average across {{ total }} submissions</div>
+        <div class="gauge-bar" style="width:90%;"><div class="gauge-fill" style="width:{{ avg_score_pct }}%;"></div></div>
+        <div style="display:flex;justify-content:space-between;width:90%;font-size:.65rem;color:var(--muted);margin-top:.2rem;">
+          <span>0.0 Safe</span><span>1.0 Critical</span>
         </div>
-        {% endfor %}
+      </div>
+      <div class="insight">
+        {% if high_pct >= 30 %}⚠️ <strong>Elevated.</strong> {{ high_pct }}% high-risk — immediate review recommended.
+        {% elif high_pct >= 15 %}⚑ <strong>Moderate concern.</strong> {{ high_pct }}% high-risk — monitor flagged students.
+        {% else %}✓ <strong>Stable cohort.</strong> Low-risk majority across all submissions.{% endif %}
       </div>
     </div>
   </div>
 
-  <!-- ── ROW 3: Bar chart | Trend ── -->
+  <!-- ── Row 3: Bar | Trend ── -->
   <div class="bento">
     <div class="tile b6" style="min-height:230px;">
       <div class="tile-label">Risk Level Breakdown</div>
-      <div class="ch screen-only" style="height:185px;">
-        <canvas id="barChart"></canvas>
-      </div>
+      <div class="ch screen-only" style="height:190px;"><canvas id="barChart"></canvas></div>
       <div class="print-only" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.2cm;">
         {% for label,count,color in bar_rows %}
         <div class="p-bar-row">
@@ -264,9 +209,7 @@ canvas { display:block; width:100% !important; }
 
     <div class="tile b6" style="min-height:230px;">
       <div class="tile-label">Response Trend Over Time</div>
-      <div class="ch screen-only" style="height:185px;">
-        <canvas id="trendChart"></canvas>
-      </div>
+      <div class="ch screen-only" style="height:190px;"><canvas id="trendChart"></canvas></div>
       <div class="print-only">
         <table style="margin-top:.2cm;">
           <thead><tr><th>Date</th><th>Responses</th><th>Cumulative</th></tr></thead>
@@ -280,9 +223,22 @@ canvas { display:block; width:100% !important; }
     </div>
   </div>
 
-  <!-- ── ROW 4: Summary table | Snap tiles | Score band ── -->
+  <!-- ── Row 4: Histogram | Summary table ── -->
   <div class="bento">
-    <div class="tile b5">
+    <div class="tile b6" style="min-height:220px;">
+      <div class="tile-label">Risk Score Histogram</div>
+      <div class="ch screen-only" style="height:185px;"><canvas id="histChart"></canvas></div>
+      <div class="print-only" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.2cm;">
+        {% for label,count,color in hist_rows %}
+        <div class="p-bar-row">
+          <div class="p-bar-label"><span>{{ label }}</span><span>{{ count }}</span></div>
+          <div class="p-bar-track"><div class="p-bar-fill" style="width:{% if total %}{% widthratio count total 100 %}{% else %}0{% endif %}%;background:{{ color }};"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="tile b6">
       <div class="tile-label">Risk Split Summary</div>
       <table style="margin-top:.25rem;">
         <thead><tr><th>Type</th><th>Count</th><th>Share</th><th>Action</th></tr></thead>
@@ -314,27 +270,6 @@ canvas { display:block; width:100% !important; }
         <div class="snap-t"><div class="snap-l">High %</div><div class="snap-v" style="color:var(--accent);">{{ high_pct }}%</div></div>
       </div>
     </div>
-
-    <div class="tile b7" style="min-height:200px;">
-      <div class="tile-label">Score Band Analysis</div>
-      <div class="ch screen-only" style="height:200px;">
-        <canvas id="polarChart"></canvas>
-      </div>
-      <div class="print-only" style="margin-top:.3cm;">
-        <table>
-          <thead><tr><th>Score Band</th><th>Students</th><th>% of Total</th></tr></thead>
-          <tbody>
-            {% for label,count,color in hist_rows %}
-            <tr>
-              <td><span style="color:{{ color }};">■</span> {{ label }}</td>
-              <td>{{ count }}</td>
-              <td>{% if total %}{% widthratio count total 100 %}%{% else %}0%{% endif %}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   {% endif %}
@@ -346,15 +281,15 @@ Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
 Chart.defaults.borderColor = 'rgba(216,178,182,0.12)';
 const CL='#8FA36D', CM='#f4a261', CH='#e63946', CA='#D8B2B6';
 
-const low={{ level_counts.Low }}, mod={{ level_counts.Moderate }}, high={{ level_counts.High }}, total={{ total }};
-const trendLabels={{ trend_labels|safe }};
-const trendValues={{ trend_values|safe }};
-const histBuckets={{ hist_buckets|safe }};
+const low   = {{ level_counts.Low }};
+const mod   = {{ level_counts.Moderate }};
+const high  = {{ level_counts.High }};
+const total = {{ total }};
 
 new Chart(document.getElementById('donutChart'),{
   type:'doughnut',
-  data:{ labels:['Low','Moderate','High'], datasets:[{ data:[low,mod,high],
-    backgroundColor:[CL,CM,CH], borderWidth:2, borderColor:'#121212', hoverOffset:5 }]},
+  data:{ labels:['Low','Moderate','High'],
+    datasets:[{ data:[low,mod,high], backgroundColor:[CL,CM,CH], borderWidth:2, borderColor:'#121212', hoverOffset:5 }]},
   options:{ cutout:'65%', responsive:true, maintainAspectRatio:false,
     plugins:{ legend:{ position:'bottom', labels:{ padding:10, boxWidth:10, font:{size:10} }},
       tooltip:{ callbacks:{ label:c=>` ${c.label}: ${c.raw} (${((c.raw/total)*100).toFixed(1)}%)`}}}}
@@ -372,9 +307,10 @@ new Chart(document.getElementById('barChart'),{
 
 new Chart(document.getElementById('trendChart'),{
   type:'line',
-  data:{ labels:trendLabels, datasets:[{ data:trendValues,
-    borderColor:CA, backgroundColor:'rgba(216,178,182,.1)', fill:true,
-    tension:.4, pointBackgroundColor:CA, pointRadius:4, pointHoverRadius:6 }]},
+  data:{ labels:{{ trend_labels|safe }},
+    datasets:[{ data:{{ trend_values|safe }}, borderColor:CA,
+      backgroundColor:'rgba(216,178,182,.1)', fill:true,
+      tension:.4, pointBackgroundColor:CA, pointRadius:4, pointHoverRadius:6 }]},
   options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
     scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.08)'}}}}
 });
@@ -382,27 +318,13 @@ new Chart(document.getElementById('trendChart'),{
 new Chart(document.getElementById('histChart'),{
   type:'bar',
   data:{ labels:['0–0.25','0.25–0.5','0.5–0.75','0.75–1.0'],
-    datasets:[{ data:histBuckets,
+    datasets:[{ data:{{ hist_buckets|safe }},
       backgroundColor:['rgba(143,163,109,.8)','rgba(216,178,182,.8)','rgba(244,162,97,.8)','rgba(230,57,70,.8)'],
       borderRadius:5, borderSkipped:false }]},
   options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
     scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.08)'}}}}
 });
 
-new Chart(document.getElementById('polarChart'),{
-  type:'polarArea',
-  data:{ labels:['0–0.25 (Safe)','0.25–0.5 (Low)','0.5–0.75 (Mod)','0.75–1.0 (High)'],
-    datasets:[{ data:histBuckets,
-      backgroundColor:['rgba(143,163,109,.75)','rgba(216,178,182,.75)','rgba(244,162,97,.75)','rgba(230,57,70,.75)'],
-      borderColor:['#8FA36D','#D8B2B6','#f4a261','#e63946'], borderWidth:1.5 }]},
-  options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:8, font:{size:10} }}},
-    scales:{ r:{ beginAtZero:true, grid:{color:'rgba(216,178,182,.12)'}, ticks:{display:false}}}}
-});
-
-function printDash() {
-  // give charts 300ms to finish rendering
-  setTimeout(() => window.print(), 300);
-}
+function printDash(){ setTimeout(()=>window.print(), 350); }
 </script>
 {% endblock %}

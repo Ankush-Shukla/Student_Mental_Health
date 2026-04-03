@@ -1,126 +1,161 @@
-# Depression Risk Detection Pipeline
+# Student Mental Health: Early Depression Risk Detection
 
-Early depression risk detection among university students using survey data,
-Apriori-based association rule mining, and rule-enriched feature construction.
+A **two-component intelligent system** that combines **Association Rule Mining** with **Machine Learning** to detect early signs of depression among university students, paired with a production-ready **Django web application** for real-time survey collection and risk prediction.
 
 ---
 
-## Structure
+## 🎯 Project Overview
 
-```
-depression_pipeline/
-├── data/
-│   ├── raw/            raw CSV files (place train.csv here)
-│   └── processed/      intermediate outputs
-├── src/
-│   ├── preprocessing.py    data cleaning, feature engineering, transaction encoding
-│   ├── apriori_engine.py   Apriori algorithm (pure Python/NumPy, no external library)
-│   ├── rule_filter.py      rule filtering, deduplication, feature construction
-│   └── visualize.py        all plot generation functions
-├── tests/
-│   ├── test_preprocessing.py
-│   └── test_apriori.py
-├── pipeline.py         end-to-end runner (CLI)
+This project aims to help universities and mental health professionals identify students at risk of depression **early and interpretably**.
+
+### Two Main Components:
+
+1. **Offline ML Research Pipeline**  
+   - Discovers meaningful association rules using a **custom Apriori algorithm**  
+   - Generates interpretable binary rule-based features  
+   - Trains and evaluates Logistic Regression + Random Forest models on enriched features  
+   - Produces 14 high-quality visualizations and analysis artifacts
+
+2. **Django Web Application**  
+   - Public student survey interface  
+   - Admin dashboard with analytics and response management  
+   - Real-time depression risk prediction using the trained model  
+   - Results are visible only to administrators (students see only a thank-you message)
+
+---
+
+## 🛠 Technology Stack
+
+- **Python** 3.14
+- **Django** 6.0.3
+- **Machine Learning**: scikit-learn, pandas, numpy, SHAP
+- **Visualization**: matplotlib, seaborn, networkx
+- **Others**: joblib, shortuuid, SQLite (development)
+
+---
+
+## 📁 Project Structure
+
+```bash
+.
+├── pipeline.py                          # Main CLI pipeline orchestrator
 ├── requirements.txt
+├── pyproject.toml
+├── uv.lock
+├── data/
+│   └── raw/                             # Place your train.csv here
+├── outputs/                             # Generated artifacts (gitignored)
+├── src/
+│   ├── preprocessing.py
+│   └── models/
+│       ├── train_models.py
+│       └── evaluate.py
+├── transaction_encoding/
+│   └── apriori_engine.py                # Custom Apriori implementation
+├── external_library/
+│   └── rule_filter.py
+├── construction/
+│   └── visualize.py                     # 14 visualization functions
+├── StudentMentalHealth/                 # Django Web Application
+│   ├── manage.py
+│   ├── core/
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   ├── inference.py                 # Bridge between Django & ML model
+│   │   ├── templates/
+│   │   └── admin.py
+│   └── db.sqlite3
+├── tests/                               # Unit tests
 └── README.md
-```
 
----
+🚀 Quick Start
+1. Clone & Setup
+Bashgit clone https://github.com/Ankush-Shukla/Student_Mental_Health.git
+cd Student_Mental_Health
 
-## Setup
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Using uv (recommended) or pip
+uv sync
+# or
 pip install -r requirements.txt
-```
+2. Run the ML Pipeline
+Bashpython pipeline.py --data data/raw/train.csv --output outputs/
+Key Flags:
 
----
+--support 0.05 — Minimum support threshold
+--confidence 0.60 — Minimum confidence threshold
+--lift 1.10 — Minimum lift threshold
+--sample 5000 — Sample rows for faster iteration
 
-## Running the Pipeline
+3. Run the Django Web App
+Bashcd StudentMentalHealth
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+Access at: http://127.0.0.1:8000
 
-Place the raw CSV in `data/raw/train.csv`, then:
+Public survey: /surveys/
+Admin login → Admin Dashboard
 
-```bash
-python pipeline.py --data data/raw/train.csv --output outputs/
-```
 
-### Options
+📊 What the Pipeline Generates
 
-| Flag              | Default  | Description                                         |
-|-------------------|----------|-----------------------------------------------------|
-| `--data`          | required | Path to raw CSV                                     |
-| `--output`        | outputs/ | Directory for all outputs                           |
-| `--support`       | 0.05     | Minimum Apriori support                             |
-| `--confidence`    | 0.60     | Minimum rule confidence                             |
-| `--lift`          | 1.10     | Minimum rule lift                                   |
-| `--max-len`       | 3        | Maximum itemset length                              |
-| `--sample`        | None     | Limit rows for faster dev runs (e.g. `--sample 5000`) |
+association_rules.csv, depression_rules.csv
+features_enriched.csv (with Rule_000, Rule_001... features)
+Trained models: lr.pkl, rf.pkl
+bin_encoders.pkl + feature_template.csv (required for inference)
+14 publication-quality visualizations (150 DPI, dark theme)
+SHAP summary plot
+Model performance metrics (metrics.json)
 
-### Example (fast dev run)
 
-```bash
-python pipeline.py \
-    --data data/raw/train.csv \
-    --output outputs/ \
-    --support 0.05 \
-    --confidence 0.60 \
-    --lift 1.05 \
-    --max-len 3 \
-    --sample 5000
-```
+🔍 Key Features
+Interpretability-First Approach
 
----
+Custom Apriori algorithm (pure Python + NumPy, no mlxtend)
+Strong association rules are converted into binary features
+Makes the final model more transparent and explainable
 
-## Outputs
+Robust Preprocessing
 
-All files written to `--output` directory:
+Handles survey data quirks (quote artefacts, "?" sentinels, etc.)
+Thoughtful binning strategies for Age, CGPA, Pressure, Sleep, etc.
+Consistent feature engineering between pipeline and inference
 
-| File                        | Description                              |
-|-----------------------------|------------------------------------------|
-| `association_rules.csv`     | All mined rules (antecedent, consequent, support, confidence, lift, conviction) |
-| `depression_rules.csv`      | Filtered rules with Depression_Yes as consequent |
-| `frequent_itemsets.csv`     | All frequent itemsets with support       |
-| `features_enriched.csv`     | Final feature matrix (model-ready + rule features) |
-| `correlation_heatmap.png`   | Feature correlation matrix               |
-| `target_distribution.png`   | Depression label distribution            |
-| `rule_scatter.png`          | Support vs confidence, colour = lift     |
-| `top_rules_lift.png`        | Top-15 rules ranked by lift              |
-| `rule_confidence_heatmap.png` | Antecedent x consequent confidence grid |
-| `rule_network.png`          | Directed rule graph (NetworkX)           |
+Production-Ready Inference
 
----
+core/inference.py mirrors the exact preprocessing used during training
+Persisted LabelEncoders ensure correct categorical encoding at inference time
+Rule features are computed using exact item-set matching
 
-## Running Tests
+Beautiful Admin Dashboard
 
-```bash
-pytest tests/ -v
-```
+Real-time analytics with Chart.js
+Response tracking and risk statistics
+Printable reports with conic-gradient visuals
 
----
 
-## Dataset Columns Used
+🧪 Testing
+Bashpytest tests/
+Covers preprocessing, Apriori logic, transaction building, and inference.
 
-| Column                              | Treatment                                 |
-|-------------------------------------|-------------------------------------------|
-| Gender                              | Binary item (Gender_Male / Gender_Female) |
-| Age                                 | Binned: <=21, 22-25, 26-30, >30          |
-| CGPA                                | Binned: Low (<5), Mid (5-7.5), High       |
-| Academic Pressure                   | Binned: Low/Moderate/High                 |
-| Work Pressure                       | Binned: Low/Moderate/High                 |
-| Study Satisfaction / Job Satisfaction | Binned: Low/Moderate/High               |
-| Sleep Duration                      | Categorical: <5h, 5-6h, 7-8h, >8h        |
-| Work/Study Hours                    | Binned: Low/Moderate/High                 |
-| Financial Stress                    | Binned: Low/Moderate/High                 |
-| Have you ever had suicidal thoughts?| Binary: 0/1                              |
-| Family History of Mental Illness    | Binary: 0/1                              |
-| Depression                          | Target: 0/1                              |
+⚠️ Known Issues & Notes
 
----
+student_detail view currently has no authentication guard (publicly accessible by ID)
+mlxtend is listed but not used (leftover dependency)
+Financial stress is stored as CharField due to "?" values in raw data
+Result page uses session-based data (only accessible immediately after submission)
 
-## Notes
 
-- Apriori is implemented from scratch (stdlib + NumPy only) — no mlxtend dependency.
-- All plots use a dark theme and are saved as 150 DPI PNGs.
-- Rule features (binary columns indicating antecedent satisfaction) are appended to
-  the model matrix and exported in `features_enriched.csv` for downstream model use.
+📸 Screenshots
+(Add screenshots of pipeline outputs, survey form, admin dashboard, and analytics here later)
+
+🤝 Contributing
+Contributions are welcome! Feel free to open issues or pull requests.
+📄 License
+This project is licensed under the MIT License.
+
+👨‍💻 Author
+Ankush Shukla
+
+Built with ❤️ for better student mental health awareness.

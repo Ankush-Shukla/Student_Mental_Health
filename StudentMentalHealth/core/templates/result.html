@@ -1,21 +1,20 @@
 {% extends "base.html" %}
-{% block title %}{{ survey.title }} — Confirmation{% endblock %}
-<head>
-    <title>Assessment Result</title>
-</head>
+{% block title %}Your Result{% endblock %}
 {% block content %}
+<div class="container" style="max-width:560px;padding-top:3rem;">
 
 
-<body>
+  <!-- thank you card -->
+  <div class="card" style="margin-bottom:1rem;">
+    <h2 style="margin-bottom:.5rem;">Thank you, {{ student_name }}!</h2>
+    <p style="margin-bottom:.75rem;">
+      Your response has been recorded and shared with the concerned authority for review. We appreciate your openness and cooperation.
+    </p>
 
-<div class="container" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-    <h2>Depression Risk Result</h2>
-    
-    <p><strong>Thanks {{ student_name }} for filling out our form </strong></p>
-    <p style="justify-content: center; text-align: center;">Your response has been successfully recorded and sent to concerned authority for further analysis we highly apreciate your cooperation</p>
+
+  <div style="text-align:center;">
+    <a href="{% url 'survey_list' %}" class="btn btn-secondary btn-sm">← Back to surveys</a>
+  </div>
+
 </div>
-
-
-</body>
 {% endblock %}
-
