@@ -69,19 +69,22 @@ This project aims to help universities and mental health professionals identify 
 ├── tests/                               # Unit tests
 └── README.md
 ```
-🚀 Quick Start
+# 🚀 Quick Start
 1. Clone & Setup
-Bashgit clone https://github.com/Ankush-Shukla/Student_Mental_Health.git
+```bash
+git clone https://github.com/Ankush-Shukla/Student_Mental_Health.git
 cd Student_Mental_Health
-
-# Using uv (recommended) or pip
+```
+# Using uv (recommended) 
 uv sync
-# or
+# or pip
 pip install -r requirements.txt
 2. Run the ML Pipeline
-Bashpython pipeline.py --data data/raw/train.csv --output outputs/
-Key Flags:
+```bash
+python pipeline.py --data data/raw/train.csv --output outputs/
+```
 
+Key Flags:
 --support 0.05 — Minimum support threshold
 --confidence 0.60 — Minimum confidence threshold
 --lift 1.10 — Minimum lift threshold
