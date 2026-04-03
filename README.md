@@ -68,7 +68,7 @@ This project aims to help universities and mental health professionals identify 
 │   └── db.sqlite3
 ├── tests/                               # Unit tests
 └── README.md
-
+```
 🚀 Quick Start
 1. Clone & Setup
 Bashgit clone https://github.com/Ankush-Shukla/Student_Mental_Health.git
