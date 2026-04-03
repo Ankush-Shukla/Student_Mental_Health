@@ -178,7 +178,26 @@ pytest tests/
 
 ## 📸 Screenshots
 
-*(Add screenshots of pipeline outputs, survey form, admin dashboard, and analytics here later)*
+# Outputs generated using pipeline:
+
+<img width="1179" height="728" alt="2026-04-04-033855_hyprshot" src="https://github.com/user-attachments/assets/40f77c3a-468e-4c13-bfb4-abab8f8eddf5" />
+<img width="1382" height="847" alt="2026-04-04-033842_hyprshot" src="https://github.com/user-attachments/assets/0cb65de6-1374-4780-bd3f-41ed29078ae9" />
+<img width="1569" height="643" alt="2026-04-04-033832_hyprshot" src="https://github.com/user-attachments/assets/db25ff4c-869c-4548-bb50-ab0c311762c3" />
+<img width="955" height="850" alt="2026-04-04-033822_hyprshot" src="https://github.com/user-attachments/assets/ca5f5a1d-f84b-4c7a-b6f2-248267b3bfc0" />
+<img width="1569" height="642" alt="2026-04-04-033813_hyprshot" src="https://github.com/user-attachments/assets/ffbdead5-71e2-4eee-a600-e107f4603102" />
+<img width="1571" height="571" alt="2026-04-04-033759_hyprshot" src="https://github.com/user-attachments/assets/a5770fc4-eaca-47a8-9b68-a90e2832e64e" />
+<img width="1060" height="845" alt="2026-04-04-033749_hyprshot" src="https://github.com/user-attachments/assets/2d0fc81b-71a1-4d82-8852-89e2e2ecf10f" />
+<img width="871" height="850" alt="2026-04-04-033733_hyprshot" src="https://github.com/user-attachments/assets/15861552-cd3b-423d-abb4-69951b4c8bc2" />
+<img width="1219" height="820" alt="2026-04-04-033724_hyprshot" src="https://github.com/user-attachments/assets/b0c3f617-f662-43b4-ab68-9e455a067461" />
+<img width="978" height="848" alt="2026-04-04-033704_hyprshot" src="https://github.com/user-attachments/assets/6e218970-624a-4679-8a6e-42a104391404" />
+<img width="1115" height="539" alt="2026-04-04-033644_hyprshot" src="https://github.com/user-attachments/assets/6b93381f-69d7-4ac7-b832-1112725f4eb2" />
+
+# Django App UI
+
+<img width="1820" height="878" alt="2026-04-04-034010_hyprshot" src="https://github.com/user-attachments/assets/46c1cadd-3e32-439d-8709-47a8932d4a5c" />
+<img width="1825" height="872" alt="2026-04-04-033948_hyprshot" src="https://github.com/user-attachments/assets/3c4956a3-ca6e-46a1-a943-d85e43a6ea4c" />
+<img width="1826" height="880" alt="2026-04-04-033924_hyprshot" src="https://github.com/user-attachments/assets/6eb56a4e-21e9-480f-92d4-88452ffd116d" />
+
 
 ---
 
