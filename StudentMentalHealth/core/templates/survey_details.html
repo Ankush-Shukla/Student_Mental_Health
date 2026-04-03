@@ -1,33 +1,93 @@
 {% extends "base.html" %}
-{% block title %}{{ survey.title }} — Details{% endblock %}
+{% block title %}{{ survey.title }} — Responses{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>{{ survey.title }}</h2>
-    <h3>{{ survey.description }}</h3>
+<div class="container-wide">
+
+  <div class="flex-between" style="margin-bottom:1.5rem;">
+    <div>
+      <h1 style="margin-bottom:.15rem;">{{ survey.title }}</h1>
+      <p style="margin:0;">{{ responses|length }} response{{ responses|length|pluralize }} collected</p>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <a href="{% url 'survey_analytics' survey.id %}" class="btn btn-secondary btn-sm">Analytics</a>
+      <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Back</a>
+    </div>
+  </div>
+
+  {% if not responses %}
+  <div class="card" style="text-align:center;padding:3rem;">
+    <p style="margin:0;">No responses yet.</p>
+  </div>
+  {% else %}
+
+  <!-- response cards grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem;">
+    {% for resp in responses %}
+    {% with pred=resp.predictionresult %}
+    <a href="{% url 'student_detail' resp.id %}" style="text-decoration:none;color:inherit;">
+      <div class="card" style="margin:0;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;"
+           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.4)'"
+           onmouseout="this.style.transform='';this.style.boxShadow=''">
+
+        <!-- risk colour strip -->
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:
+          {% if pred.risk_level == 'High' %}var(--negative)
+          {% elif pred.risk_level == 'Moderate' %}var(--accent)
+          {% else %}var(--positive){% endif %};"></div>
+
+        <!-- top row: name + badge -->
+        <div class="flex-between" style="margin-top:.25rem;margin-bottom:.75rem;">
+          <div>
+            <div style="font-weight:600;font-size:.95rem;">{{ resp.student.name }}</div>
+            <div style="font-size:.75rem;color:var(--muted);">{{ resp.student.email }}</div>
+          </div>
+          {% if pred %}
+          <span class="badge badge-{{ pred.risk_level|lower }}">{{ pred.risk_level }}</span>
+          {% endif %}
+        </div>
+
+        <!-- score bar -->
+        {% if pred %}
+        <div style="margin-bottom:.75rem;">
+          <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:.25rem;">
+            <span>Risk Score</span><span style="font-weight:600;color:var(--text);">{{ pred.risk_score|floatformat:3 }}</span>
+          </div>
+          <div style="height:5px;background:rgba(216,178,182,.18);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:{% widthratio pred.risk_score 1 100 %}%;border-radius:99px;background:
+              {% if pred.risk_level == 'High' %}var(--negative)
+              {% elif pred.risk_level == 'Moderate' %}var(--accent)
+              {% else %}var(--positive){% endif %};"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- quick stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;font-size:.72rem;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.35rem .5rem;">
+            <div style="color:var(--muted);">CGPA</div>
+            <div style="font-weight:600;margin-top:.1rem;">{{ resp.cgpa|default:"0" }}</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.35rem .5rem;">
+            <div style="color:var(--muted);">Acad. Press.</div>
+            <div style="font-weight:600;margin-top:.1rem;">{{ resp.academic_pressure|default:"—" }}</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.35rem .5rem;">
+            <div style="color:var(--muted);">Sleep</div>
+            <div style="font-weight:600;margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ resp.sleep_duration|default:"—" }}</div>
+          </div>
+        </div>
+
+        <!-- date -->
+        <div style="margin-top:.6rem;font-size:.7rem;color:var(--muted);">
+          Submitted {{ resp.created_at|date:"M j, Y · H:i" }}
+        </div>
+      </div>
+    </a>
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  {% endif %}
 </div>
- 
-{% for p in prediction %}
-<a href="{% url 'student_detail' p.response.id %}" class="link" >
- <p class="card" >
-    {% if p.risk_score >= 0.70 %}
-        Name: {{ p.response.student.name }} <br>
-         <text style="color : var(--negative)">Risk Level: High <br></text>
-        Score: {{ p.risk_score }}
-
-    {% elif p.risk_score > 0.30 %}
-        Name: {{ p.response.student.name }} <br>
-        <text style="color : var(--neutral)">Risk Level: Moderate <br></text>
-        Score: {{ p.risk_score }}
-    {% else %}
-        Name: {{ p.response.student.name }} <br>
-         <text style="color : var(--positive)">Risk Level: Low <br></text>
-        Score: {{ p.risk_score }}
-    {% endif %}
-    
-       
-    
-</p>
-   </a> 
-{% endfor %}
-
 {% endblock %}

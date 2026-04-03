@@ -1,56 +1,99 @@
 {% extends "base.html" %}
-{% block title %}{{ survey.title }} — Details{% endblock %}
+{% block title %}{{ response.student.name }} — Response Detail{% endblock %}
 
 {% block content %}
+<div class="container">
 
+  <div class="flex-between" style="margin-bottom:1.5rem;">
+    <div>
+      <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem;">Student Response</div>
+      <h1 style="margin-bottom:.1rem;">{{ response.student.name }}</h1>
+      <p style="margin:0;font-size:.85rem;">{{ response.student.email }}</p>
+    </div>
+    <a href="javascript:history.back()" class="btn btn-secondary btn-sm">← Back</a>
+  </div>
 
-<div class="card">
-    <h1>Student Details</h1>
+  {% if prediction %}
+  <!-- ── Risk result banner ── -->
+  <div style="
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    padding:1.25rem 1.5rem;
+    margin-bottom:1.25rem;
+    display:flex;align-items:center;gap:1.5rem;
+    background:{% if prediction.risk_level == 'High' %}rgba(230,57,70,.08){% elif prediction.risk_level == 'Moderate' %}rgba(244,162,97,.08){% else %}rgba(143,163,109,.08){% endif %};
+    border-left:4px solid {% if prediction.risk_level == 'High' %}var(--negative){% elif prediction.risk_level == 'Moderate' %}var(--accent){% else %}var(--positive){% endif %};
+  ">
+    <div>
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem;">Risk Level</div>
+      <span class="badge badge-{{ prediction.risk_level|lower }}" style="font-size:.9rem;padding:.3rem .9rem;">{{ prediction.risk_level }}</span>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem;">
+        Risk Score &nbsp;<span style="font-weight:700;color:var(--text);font-size:1rem;">{{ prediction.risk_score|floatformat:4 }}</span>
+      </div>
+      <div style="height:8px;background:rgba(216,178,182,.18);border-radius:99px;overflow:hidden;max-width:400px;">
+        <div style="height:100%;width:{% widthratio prediction.risk_score 1 100 %}%;border-radius:99px;
+          background:{% if prediction.risk_level == 'High' %}var(--negative){% elif prediction.risk_level == 'Moderate' %}var(--accent){% else %}var(--positive){% endif %};"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;max-width:400px;font-size:.65rem;color:var(--muted);margin-top:.2rem;">
+        <span>0.0 Low risk</span><span>1.0 High risk</span>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.15rem;">Prediction</div>
+      <div style="font-size:1.5rem;font-weight:700;">{{ prediction.prediction }}</div>
+      <div style="font-size:.68rem;color:var(--muted);">(0=safe · 1=at-risk)</div>
+    </div>
+  </div>
+  {% endif %}
 
-    <p><strong>Name:</strong> {{ response.student.name }}</p>
-    <p><strong>Email:</strong> {{ response.student.email }}</p>
-    <p><strong>Survey:</strong> {{ response.survey.title }}</p>
-    <p><strong>Date:</strong> {{ response.created_at }}</p>
+  <!-- ── Two-col detail grid ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
 
-    <hr>
-    <br>
-    <h1>Survey Response</h1>
+    <!-- Academic -->
+    <div class="card" style="margin:0;">
+      <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;">Academic</h2>
+      {% include "partials/detail_row.html" with label="CGPA" value=response.cgpa %}
+      {% include "partials/detail_row.html" with label="Academic Pressure" value=response.academic_pressure %}
+      {% include "partials/detail_row.html" with label="Study Satisfaction" value=response.study_satisfaction %}
+      {% include "partials/detail_row.html" with label="Work/Study Hours" value=response.work_study_hours %}
+    </div>
 
-    <p>Age: {{ response.age }}</p>
-    <p>Gender: {{ response.gender }}</p>
-    <p>CGPA: {{ response.cgpa }}</p>
-    <p>Academic Pressure: {{ response.academic_pressure }}</p>
-    <p>Work Pressure: {{ response.work_pressure }}</p>
-    <p>Study Satisfaction: {{ response.study_satisfaction }}</p>
-    <p>Job Satisfaction: {{ response.job_satisfaction }}</p>
-    <p>Work/Study Hours: {{ response.work_study_hours }}</p>
-    <p>Sleep Duration: {{ response.sleep_duration }}</p>
-    <p>Dietary Habits: {{ response.dietary_habits }}</p>
-    <p>Suicidal Thoughts: {{ response.suicidal_thoughts }}</p>
-    <p>Family History: {{ response.family_history }}</p>
-    <p>Financial Stress: {{ response.financial_stress }}</p>
+    <!-- Work -->
+    <div class="card" style="margin:0;">
+      <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;">Work</h2>
+      {% include "partials/detail_row.html" with label="Work Pressure" value=response.work_pressure %}
+      {% include "partials/detail_row.html" with label="Job Satisfaction" value=response.job_satisfaction %}
+      {% include "partials/detail_row.html" with label="Financial Stress" value=response.financial_stress %}
+    </div>
 
-    <hr>
-    <br>
-    <h1>Prediction Result</h1>
+    <!-- Lifestyle -->
+    <div class="card" style="margin:0;">
+      <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;">Lifestyle</h2>
+      {% include "partials/detail_row.html" with label="Age" value=response.age %}
+      {% include "partials/detail_row.html" with label="Gender" value=response.gender %}
+      {% include "partials/detail_row.html" with label="Sleep Duration" value=response.sleep_duration %}
+      {% include "partials/detail_row.html" with label="Dietary Habits" value=response.dietary_habits %}
+    </div>
 
-    {% if prediction %}
-        <p>
-            <strong>Risk Level:</strong>
-            <span class="
-                {% if prediction.risk_level == 'High' %}high
-                {% elif prediction.risk_level == 'Moderate' %}moderate
-                {% else %}low
-                {% endif %}
-            ">
-                {{ prediction.risk_level }}
-            </span>
-        </p>
+    <!-- Mental health -->
+    <div class="card" style="margin:0;">
+      <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem;">Mental Health</h2>
+      {% include "partials/detail_row.html" with label="Suicidal Thoughts" value=response.suicidal_thoughts %}
+      {% include "partials/detail_row.html" with label="Family History" value=response.family_history %}
+    </div>
+  </div>
 
-        <p><strong>Risk Score:</strong> {{ prediction.risk_score }}</p>
-    {% else %}
-        <p>No prediction available.</p>
-    {% endif %}
+  <!-- Survey meta -->
+  <div class="card" style="margin:0;">
+    <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem;">Submission Info</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;font-size:.85rem;">
+      <div><span style="color:var(--muted);">Survey</span><br><strong>{{ response.survey.title }}</strong></div>
+      <div><span style="color:var(--muted);">Submitted</span><br><strong>{{ response.created_at|date:"M j, Y · H:i" }}</strong></div>
+      <div><span style="color:var(--muted);">Response ID</span><br><strong style="font-size:.78rem;">{{ response.id }}</strong></div>
+    </div>
+  </div>
+
 </div>
-
 {% endblock %}

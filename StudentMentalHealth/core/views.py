@@ -103,8 +103,8 @@ def submit_survey(request):
 
     # Cast numeric fields
     numeric_fields = {
-        "Age":                 float,
-        "CGPA":                float,
+        "Age":                 int,
+        "CGPA":                int,
         "Academic Pressure":   int,
         "Work Pressure":       int,
         "Study Satisfaction":  int,
@@ -276,6 +276,9 @@ from django.utils.timezone import localdate
 #   from collections import defaultdict
 #   from django.db.models import Avg, Count
 
+# Replace survey_analytics in core/views.py
+# Ensure at top of views.py: import json, from collections import defaultdict
+
 @login_required
 @user_passes_test(_is_admin)
 def survey_analytics(request, survey_id):
@@ -295,43 +298,43 @@ def survey_analytics(request, survey_id):
         "High":     predictions.filter(risk_level="High").count(),
     }
 
-    high_pct     = round(high_risk / total * 100, 1) if total else 0
+    high_pct      = round(high_risk / total * 100, 1) if total else 0
     avg_score_pct = round(avg_score * 100, 1)
 
     # ── Histogram ────────────────────────────────────────────────────────────
-    all_scores = list(predictions.values_list("risk_score", flat=True))
+    all_scores   = list(predictions.values_list("risk_score", flat=True))
     hist_buckets = [0, 0, 0, 0]
     for s in all_scores:
-        if s < 0.25:   hist_buckets[0] += 1
-        elif s < 0.5:  hist_buckets[1] += 1
+        if   s < 0.25: hist_buckets[0] += 1
+        elif s < 0.50: hist_buckets[1] += 1
         elif s < 0.75: hist_buckets[2] += 1
         else:          hist_buckets[3] += 1
 
     # ── Trend ────────────────────────────────────────────────────────────────
-    trend_total_d = defaultdict(int)
+    trend_d = defaultdict(int)
     for pred in predictions:
         day = pred.response.created_at.date().isoformat()
-        trend_total_d[day] += 1
+        trend_d[day] += 1
+    all_days = sorted(trend_d.keys())
 
-    all_days = sorted(trend_total_d.keys())
+    # cumulative trend for print table
+    cum = 0
+    trend_rows = []
+    for d in all_days:
+        cum += trend_d[d]
+        trend_rows.append((d, trend_d[d], cum))
 
-    # ── Print-friendly data ──────────────────────────────────────────────────
-    # bar_rows: list of (label, count, hex_color) for CSS print bars
+    # ── Print bar data ────────────────────────────────────────────────────────
     bar_rows = [
-        ("Low Risk",      level_counts["Low"],      "#5a7a40"),
-        ("Moderate Risk", level_counts["Moderate"], "#c97a3a"),
-        ("High Risk",     level_counts["High"],     "#b53030"),
+        ("Low Risk",      level_counts["Low"],      "#4a7030"),
+        ("Moderate Risk", level_counts["Moderate"], "#c07a30"),
+        ("High Risk",     level_counts["High"],     "#a83030"),
     ]
-
-    # hist_rows for print histogram
     hist_labels = ["0 – 0.25", "0.25 – 0.5", "0.5 – 0.75", "0.75 – 1.0"]
-    hist_colors = ["#5a7a40", "#b0a0a0", "#c97a3a", "#b53030"]
-    hist_rows = list(zip(hist_labels, hist_buckets, hist_colors))
+    hist_colors = ["#4a7030", "#8a8080", "#c07a30", "#a83030"]
+    hist_rows   = list(zip(hist_labels, hist_buckets, hist_colors))
 
-    # trend_pairs: list of (date_str, count) for print table
-    trend_pairs = [(d, trend_total_d[d]) for d in all_days]
-
-    # Donut percentages for CSS conic-gradient
+    # CSS conic-gradient stop points
     low_pct     = round(level_counts["Low"]      / total * 100) if total else 0
     low_mod_pct = round((level_counts["Low"] + level_counts["Moderate"]) / total * 100) if total else 0
 
@@ -344,14 +347,14 @@ def survey_analytics(request, survey_id):
         "avg_score_pct": avg_score_pct,
         "level_counts":  level_counts,
         "high_pct":      high_pct,
-        # chart.js data (screen)
+        # chart.js (screen)
         "trend_labels":  json.dumps(all_days),
-        "trend_values":  json.dumps([trend_total_d[d] for d in all_days]),
+        "trend_values":  json.dumps([trend_d[d] for d in all_days]),
         "hist_buckets":  json.dumps(hist_buckets),
-        # print-only data
+        # print-only
         "bar_rows":      bar_rows,
         "hist_rows":     hist_rows,
-        "trend_pairs":   trend_pairs,
+        "trend_rows":    trend_rows,
         "low_pct":       low_pct,
         "low_mod_pct":   low_mod_pct,
     }
