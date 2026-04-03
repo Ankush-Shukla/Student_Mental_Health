@@ -169,7 +169,7 @@ pytest tests/
 
 ## ⚠️ Known Issues & Notes
 
-* `student_detail` view currently has no authentication guard (publicly accessible by ID)
+* ~~`student_detail` view currently has no authentication guard (publicly accessible by ID)~~
 * `mlxtend` is listed but not used (leftover dependency)
 * Financial stress stored as `CharField` due to "?" values in raw data
 * Result page uses session-based data (only accessible immediately after submission)
