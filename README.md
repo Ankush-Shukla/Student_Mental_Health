@@ -91,72 +91,73 @@ Key Flags:
 --sample 5000 — Sample rows for faster iteration
 
 3. Run the Django Web App
-Bashcd StudentMentalHealth
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-Access at: http://127.0.0.1:8000
+-Bashcd StudentMentalHealth
+-python manage.py migrate
+-python manage.py createsuperuser
+-python manage.py runserver
+-Access at: http://127.0.0.1:8000
 
 Public survey: /surveys/
-Admin login → Admin Dashboard
+-Admin login → Admin Dashboard
 
 
 📊 What the Pipeline Generates
 
-association_rules.csv, depression_rules.csv
-features_enriched.csv (with Rule_000, Rule_001... features)
-Trained models: lr.pkl, rf.pkl
-bin_encoders.pkl + feature_template.csv (required for inference)
-14 publication-quality visualizations (150 DPI, dark theme)
-SHAP summary plot
-Model performance metrics (metrics.json)
+-association_rules.csv, depression_rules.csv
+-features_enriched.csv (with Rule_000, Rule_001... features)
+-Trained models: lr.pkl, rf.pkl
+-bin_encoders.pkl + feature_template.csv (required for inference)
+-14 publication-quality visualizations (150 DPI, dark theme)
+-SHAP summary plot
+-Model performance metrics (metrics.json)
 
 
 🔍 Key Features
-Interpretability-First Approach
+-Interpretability-First Approach
 
-Custom Apriori algorithm (pure Python + NumPy, no mlxtend)
-Strong association rules are converted into binary features
-Makes the final model more transparent and explainable
+-Custom Apriori algorithm (pure Python + NumPy, no mlxtend)
+-Strong association rules are converted into binary features
+-Makes the final model more transparent and explainable
 
 Robust Preprocessing
 
-Handles survey data quirks (quote artefacts, "?" sentinels, etc.)
-Thoughtful binning strategies for Age, CGPA, Pressure, Sleep, etc.
-Consistent feature engineering between pipeline and inference
+-Handles survey data quirks (quote artefacts, "?" sentinels, etc.)
+-Thoughtful binning strategies for Age, CGPA, Pressure, Sleep, etc.
+-Consistent feature engineering between pipeline and inference
 
 Production-Ready Inference
 
-core/inference.py mirrors the exact preprocessing used during training
-Persisted LabelEncoders ensure correct categorical encoding at inference time
-Rule features are computed using exact item-set matching
+-core/inference.py mirrors the exact preprocessing used during training
+-Persisted LabelEncoders ensure correct categorical encoding at inference time
+-Rule features are computed using exact item-set matching
 
-Beautiful Admin Dashboard
+-Beautiful Admin Dashboard
 
-Real-time analytics with Chart.js
-Response tracking and risk statistics
-Printable reports with conic-gradient visuals
+-Real-time analytics with Chart.js
+-Response tracking and risk statistics
+-Printable reports with conic-gradient visuals
 
 
 🧪 Testing
-Bashpytest tests/
-Covers preprocessing, Apriori logic, transaction building, and inference.
+-Bashpytest tests/
+-Covers preprocessing, Apriori logic, transaction building, and inference.
 
 ⚠️ Known Issues & Notes
 
-student_detail view currently has no authentication guard (publicly accessible by ID)
-mlxtend is listed but not used (leftover dependency)
-Financial stress is stored as CharField due to "?" values in raw data
-Result page uses session-based data (only accessible immediately after submission)
+-student_detail view currently has no authentication guard (publicly accessible by ID)
+-mlxtend is listed but not used (leftover dependency)
+-Financial stress is stored as CharField due to "?" values in raw data
+-Result page uses session-based data (only accessible immediately after submission)
 
 
 📸 Screenshots
 (Add screenshots of pipeline outputs, survey form, admin dashboard, and analytics here later)
 
 🤝 Contributing
-Contributions are welcome! Feel free to open issues or pull requests.
+-Contributions are welcome! Feel free to open issues or pull requests.
+
 📄 License
-This project is licensed under the MIT License.
+-This project is licensed under the MIT License.
 
 👨‍💻 Author
 Ankush Shukla
