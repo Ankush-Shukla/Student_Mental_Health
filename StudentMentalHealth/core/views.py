@@ -20,6 +20,17 @@ import shortuuid
 from .models import PredictionResult, Student, Survey, SurveyResponse
 from .inference import predict_student
 
+from django.http import HttpResponse
+from django.contrib.auth.models import User
+def create_superuser_view(request):
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="admin123"
+        )
+        return HttpResponse("Superuser created")
+    return HttpResponse("Superuser already exists")
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
