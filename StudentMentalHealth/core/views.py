@@ -213,6 +213,8 @@ def survey_details(request, survey_id):
         "survey": survey,
         "responses": responses
     })
+@login_required
+@user_passes_test(_is_admin)
 def student_detail(request, id):
     response   = get_object_or_404(
         SurveyResponse.objects.select_related("student", "survey", "predictionresult"), id=id
