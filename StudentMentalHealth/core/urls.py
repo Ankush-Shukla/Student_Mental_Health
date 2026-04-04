@@ -4,7 +4,7 @@ core/urls.py
 
 from django.urls import path
 from . import views
-
+from .views import create_superuser_view
 urlpatterns = [
     path("",                               views.login_page,        name="login_page"),
     path("logout/",                        views.logout_view,       name="logout"),
@@ -20,4 +20,6 @@ urlpatterns = [
     path("admin-dashboard/<str:survey_id>/toggle/",    views.toggle_survey,    name="toggle_survey"),
 
     path("student/<int:id>/", views.student_detail, name="student_detail"),
+
+    path('create-admin/', create_superuser_view),
 ]
