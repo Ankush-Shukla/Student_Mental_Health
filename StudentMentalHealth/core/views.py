@@ -108,22 +108,24 @@ def submit_survey(request):
 
     student  = Student.objects.create(name=name, email=email)
     response = SurveyResponse.objects.create(
-        survey=survey,
-        student=student,
-        age=float(data.get("Age") or 0),
-        gender=data.get("Gender"),
-        cgpa=float(data.get("Cgpa") or 0),
-        academic_pressure=int(data.get("Academic pressure") or 0),
-        work_pressure=int(data.get("Work pressure") or 0),
-        study_satisfaction=int(data.get("Study satisfaction") or 0),
-        job_satisfaction=int(data.get("Job satisfaction") or 0),
-        work_study_hours=float(data.get("Work/Study Hours") or 0),
-        sleep_duration=data.get("Sleep Duration"),
-        dietary_habits=data.get("Dietary Habits"),
-        suicidal_thoughts=data.get("Have you ever had suicidal thoughts ?"),
-        family_history=data.get("Family History of Mental Illness"),
-        financial_stress=str(data.get("Financial Stress") or 0),
-    )
+         survey=survey,
+         student=student,
+         age=float(data.get("Age") or 0),
+         gender=data.get("Gender"),
+         cgpa=float(data.get("CGPA") or 0),
+
+         academic_pressure=int(data.get("Academic Pressure") or 0),
+         work_pressure=int(data.get("Work Pressure") or 0),
+         study_satisfaction=int(data.get("Study Satisfaction") or 0),
+         job_satisfaction=int(data.get("Job Satisfaction") or 0),
+
+         work_study_hours=float(data.get("Work/Study Hours") or 0),
+         sleep_duration=data.get("Sleep Duration"),
+         dietary_habits=data.get("Dietary Habits"),
+         suicidal_thoughts=data.get("Have you ever had suicidal thoughts ?"),
+         family_history=data.get("Family History of Mental Illness"),
+         financial_stress=str(data.get("Financial Stress") or 0),
+        )
 
     ml_input = {
         "Age": data.get("Age"), "Gender": data.get("Gender"),
