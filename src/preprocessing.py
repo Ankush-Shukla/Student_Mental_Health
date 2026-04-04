@@ -4,6 +4,12 @@ preprocessing.py
 Loads raw survey data, cleans string artefacts, engineers categorical
 bins, and produces both a model-ready feature matrix and a boolean
 transaction DataFrame for Apriori mining.
+
+Fix (v2): build_model_matrix now creates one LabelEncoder per bin column
+and returns them alongside X and y so the pipeline can persist them
+correctly.  The old code reused a single `le` instance in a loop,
+meaning only the last column's classes were kept — all earlier columns
+were silently encoded as 0.
 """
 
 import re
@@ -17,8 +23,6 @@ from sklearn.preprocessing import LabelEncoder
 # ---------------------------------------------------------------------------
 
 def _strip_quotes(series: pd.Series) -> pd.Series:
-    """Remove leading/trailing single-quotes and whitespace that appear in
-    some fields (e.g. "'5-6 hours'" -> "5-6 hours")."""
     return series.str.replace(r"^'+|'+$", "", regex=True).str.strip()
 
 
@@ -29,8 +33,6 @@ def _bin_age(series: pd.Series) -> pd.Series:
 
 
 def _bin_cgpa(series: pd.Series) -> pd.Series:
-    # Boundaries chosen at ~25th and ~75th percentile of this dataset (6.3, 8.9)
-    # rounded to clean values; avoids the empty CGPA_Low bin the old [0,5] boundary created.
     bins   = [-np.inf, 6.5, 8.5, np.inf]
     labels = ["CGPA_Low", "CGPA_Mid", "CGPA_High"]
     return pd.cut(series, bins=bins, labels=labels, right=True)
@@ -59,44 +61,30 @@ def _bin_satisfaction(series: pd.Series, prefix: str) -> pd.Series:
 # ---------------------------------------------------------------------------
 
 def load_raw(path: str) -> pd.DataFrame:
-    """Read the raw CSV and return an unmodified DataFrame."""
-    df = pd.read_csv(path)
-    return df
+    return pd.read_csv(path)
 
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Clean a raw survey DataFrame in-place (copy returned):
-      - Strip quote artefacts from string columns
-      - Normalize known categorical values to title-case
-      - Replace sentinel strings ('Others', blank) with NaN where appropriate
-      - Drop duplicated id rows
-    """
     df = df.copy()
 
-    # Strip quote artefacts
     str_cols = df.select_dtypes(include=["object", "str"]).columns
     for col in str_cols:
         df[col] = _strip_quotes(df[col].astype(str))
 
-    # Normalize
-    df["Gender"]  = df["Gender"].str.title()
+    df["Gender"]         = df["Gender"].str.title()
     df["Dietary Habits"] = df["Dietary Habits"].str.title()
     df["Sleep Duration"] = df["Sleep Duration"].str.lower().str.strip()
 
-    # Suicidal thoughts -> binary
     df["Suicidal_Thoughts"] = (
         df["Have you ever had suicidal thoughts ?"]
         .str.strip().str.lower().eq("yes").astype(int)
     )
 
-    # Family history -> binary
     df["Family_History"] = (
         df["Family History of Mental Illness"]
         .str.strip().str.lower().eq("yes").astype(int)
     )
 
-    # Deduplicate on id
     if "id" in df.columns:
         df = df.drop_duplicates(subset="id")
 
@@ -104,10 +92,6 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Derive binned / encoded columns used for both modelling and mining.
-    Returns a new DataFrame with appended columns; original columns retained.
-    """
     df = df.copy()
 
     df["Age_Bin"]          = _bin_age(df["Age"])
@@ -118,7 +102,6 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["StudySat_Bin"]     = _bin_satisfaction(df["Study Satisfaction"], "StudySat")
     df["JobSat_Bin"]       = _bin_satisfaction(df["Job Satisfaction"],   "JobSat")
 
-    # Sleep -> ordinal category
     sleep_map = {
         "less than 5 hours": "Sleep_<5h",
         "5-6 hours":         "Sleep_5-6h",
@@ -128,7 +111,6 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     }
     df["Sleep_Cat"] = df["Sleep Duration"].map(sleep_map).fillna("Sleep_Other")
 
-    # Financial stress (mixed: some numeric, some string, and "?" sentinel)
     fs = pd.to_numeric(df["Financial Stress"].replace("?", np.nan), errors="coerce")
     df["FinStress_Bin"] = pd.cut(
         fs, bins=[-1, 2, 3, 5],
@@ -138,75 +120,72 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_model_matrix(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    """
-    Construct a numeric feature matrix (X) and label vector (y) for
-    supervised learning.  Only deterministic, non-leaking features are used.
+# Canonical list of bin columns — shared by pipeline and inference
+BIN_COLS: list[str] = [
+    "Age_Bin", "CGPA_Bin", "AcadPressure_Bin", "WorkPressure_Bin",
+    "StudyHrs_Bin", "StudySat_Bin", "JobSat_Bin", "Sleep_Cat", "FinStress_Bin",
+]
 
+
+def build_model_matrix(
+    df: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.Series, dict[str, LabelEncoder]]:
+    """
     Returns
     -------
-    X : pd.DataFrame  — numeric feature matrix
-    y : pd.Series     — binary depression label (0 / 1)
+    X         : numeric feature DataFrame
+    y         : binary label Series
+    encoders  : {col_name -> fitted LabelEncoder}  — persist these for inference
+
+    FIX: one LabelEncoder per bin column (the old code reused a single
+    instance and discarded all but the last column's encoding).
     """
     df = engineer_features(df)
 
-    # Work Pressure and Job Satisfaction are excluded: 99.9% of records are
-    # students with 0 for both — they add no signal and inflate the correlation matrix.
-    feature_cols = [
+    base_features = [
         "Age", "CGPA", "Academic Pressure",
         "Study Satisfaction", "Work/Study Hours",
         "Suicidal_Thoughts", "Family_History",
     ]
 
-    # Encode binned categoricals numerically
-    bin_cols = [
-        "Age_Bin", "CGPA_Bin", "AcadPressure_Bin", "WorkPressure_Bin",
-        "StudyHrs_Bin", "StudySat_Bin", "JobSat_Bin", "Sleep_Cat",
-        "FinStress_Bin",
-    ]
-    le = LabelEncoder()
-    for col in bin_cols:
+    encoders: dict[str, LabelEncoder] = {}
+    enc_features: list[str] = []
+
+    for col in BIN_COLS:
+        le = LabelEncoder()
         df[col + "_Enc"] = le.fit_transform(df[col].astype(str))
-        feature_cols.append(col + "_Enc")
+        encoders[col] = le
+        enc_features.append(col + "_Enc")
 
-    # Gender one-hot
     df["Gender_Male"] = (df["Gender"].str.lower() == "male").astype(int)
-    feature_cols.append("Gender_Male")
 
+    feature_cols = base_features + enc_features + ["Gender_Male"]
     X = df[feature_cols].copy()
     y = df["Depression"].astype(int)
 
-    return X, y
+    return X, y, encoders
 
 
 def build_transactions(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Transform each student record into a boolean (one-hot) item DataFrame
-    suitable for Apriori mining.
-
-    Each column represents one item (e.g. "CGPA_High", "Sleep_5-6h").
-    A True value means the student possesses that item.
-    """
     df = engineer_features(df)
 
     rows = []
     for _, row in df.iterrows():
-        items: dict[str, bool] = {}
-
-        items[f"Gender_{row['Gender']}"]          = True
-        items[str(row["Age_Bin"])]                = True
-        items[str(row["CGPA_Bin"])]               = True
-        items[str(row["AcadPressure_Bin"])]       = True
-        items[str(row["WorkPressure_Bin"])]       = True
-        items[str(row["StudyHrs_Bin"])]           = True
-        items[str(row["StudySat_Bin"])]           = True
-        items[str(row["JobSat_Bin"])]             = True
-        items[str(row["Sleep_Cat"])]              = True
-        items[str(row["FinStress_Bin"])]          = True
-        items["Suicidal_Yes" if row["Suicidal_Thoughts"] else "Suicidal_No"] = True
-        items["FamilyHistory_Yes" if row["Family_History"] else "FamilyHistory_No"] = True
-        items["Depression_Yes" if row["Depression"] == 1 else "Depression_No"] = True
-
+        items: dict[str, bool] = {
+            f"Gender_{row['Gender']}":              True,
+            str(row["Age_Bin"]):                    True,
+            str(row["CGPA_Bin"]):                   True,
+            str(row["AcadPressure_Bin"]):           True,
+            str(row["WorkPressure_Bin"]):           True,
+            str(row["StudyHrs_Bin"]):               True,
+            str(row["StudySat_Bin"]):               True,
+            str(row["JobSat_Bin"]):                 True,
+            str(row["Sleep_Cat"]):                  True,
+            str(row["FinStress_Bin"]):              True,
+            "Suicidal_Yes" if row["Suicidal_Thoughts"] else "Suicidal_No": True,
+            "FamilyHistory_Yes" if row["Family_History"] else "FamilyHistory_No": True,
+            "Depression_Yes" if row["Depression"] == 1 else "Depression_No": True,
+        }
         rows.append(items)
 
     tx_df = pd.DataFrame(rows).fillna(False).astype(bool)

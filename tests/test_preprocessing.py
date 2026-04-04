@@ -1,8 +1,5 @@
 """
 tests/test_preprocessing.py
-----------------------------
-Unit tests for the preprocessing module.
-Run with: python -m unittest discover tests/ -v
 """
 
 import sys
@@ -10,7 +7,7 @@ import unittest
 from pathlib import Path
 
 import pandas as pd
-import numpy as np
+import numpy  as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from preprocessing import (
@@ -97,12 +94,12 @@ class TestEngineerFeatures(unittest.TestCase):
         self.assertIn("FinStress_Bin", self.df.columns)
 
     def test_sleep_cat_values_are_valid(self):
-        valid = {"Sleep_<5h", "Sleep_5-6h", "Sleep_7-8h", "Sleep_>8h", "Sleep_Other"}
+        valid  = {"Sleep_<5h", "Sleep_5-6h", "Sleep_7-8h", "Sleep_>8h", "Sleep_Other"}
         actual = set(self.df["Sleep_Cat"].unique())
         self.assertTrue(actual.issubset(valid), f"Unexpected values: {actual - valid}")
 
     def test_academic_pressure_bin_three_levels(self):
-        valid = {"AcadPressure_Low", "AcadPressure_Moderate", "AcadPressure_High"}
+        valid  = {"AcadPressure_Low", "AcadPressure_Moderate", "AcadPressure_High"}
         actual = set(self.df["AcadPressure_Bin"].dropna().unique())
         self.assertTrue(actual.issubset(valid))
 
@@ -110,7 +107,8 @@ class TestEngineerFeatures(unittest.TestCase):
 class TestBuildModelMatrix(unittest.TestCase):
 
     def setUp(self):
-        self.X, self.y = build_model_matrix(clean(_make_sample()))
+        # Updated: build_model_matrix now returns (X, y, encoders)
+        self.X, self.y, self.encoders = build_model_matrix(clean(_make_sample()))
 
     def test_row_count_matches_input(self):
         self.assertEqual(self.X.shape[0], 4)
@@ -128,8 +126,17 @@ class TestBuildModelMatrix(unittest.TestCase):
         for col in self.X.columns:
             self.assertTrue(
                 np.issubdtype(self.X[col].dtype, np.number),
-                f"Column {col} is not numeric"
+                f"Column {col} is not numeric",
             )
+
+    def test_encoders_dict_has_correct_keys(self):
+        from preprocessing import BIN_COLS
+        for col in BIN_COLS:
+            self.assertIn(col, self.encoders, f"Missing encoder for {col}")
+
+    def test_each_encoder_has_classes(self):
+        for col, le in self.encoders.items():
+            self.assertGreater(len(le.classes_), 0, f"Encoder for {col} has no classes")
 
 
 class TestBuildTransactions(unittest.TestCase):
@@ -152,7 +159,7 @@ class TestBuildTransactions(unittest.TestCase):
 
     def test_depression_yes_and_no_mutually_exclusive(self):
         both = (self.tx["Depression_Yes"] & self.tx["Depression_No"]).any()
-        self.assertFalse(both, "A record cannot be both Depression_Yes and Depression_No")
+        self.assertFalse(both)
 
     def test_gender_items_present(self):
         gender_cols = [c for c in self.tx.columns if c.startswith("Gender_")]

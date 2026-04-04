@@ -7,16 +7,15 @@ Usage
 -----
     python pipeline.py --data data/raw/train.csv --output outputs/
 
-Steps
------
-  1. Load and clean raw data
-  2. Build transaction matrix for Apriori
-  3. Build model feature matrix
-  4. Mine frequent itemsets and association rules
-  5. Filter rules to depression-relevant ones
-  6. Build rule-based binary features
-  7. Generate all 14 visualisations
-  8. Export artefacts (CSVs)
+Fixes in v2
+-----------
+* build_model_matrix now returns (X, y, encoders) — one LabelEncoder per
+  bin column — and we persist the encoders to bin_encoders.pkl so that
+  inference.py can use them correctly.
+* sample_size variable shadowing bug fixed (local `sample_size` inside
+  SHAP block no longer overwrites the CLI argument).
+* SHAP block moved inside its own try/except so a SHAP failure doesn't
+  abort the rest of the pipeline.
 """
 
 from __future__ import annotations
@@ -31,7 +30,7 @@ import pandas as pd
 import numpy as np
 
 # ---------------------------------------------------------------------------
-# Module discovery — works regardless of how the user arranged subdirectories
+# Module discovery
 # ---------------------------------------------------------------------------
 
 _ROOT    = Path(__file__).parent
@@ -114,13 +113,13 @@ def run(data_path, output_dir, min_support, min_confidence,
     _log(f"Transaction matrix: {tx_df.shape}  ({list(tx_df.columns[:5])} ...)")
 
     # ------------------------------------------------------------------
-    # 3. Model feature matrix
+    # 3. Model feature matrix  (returns encoders now)
     # ------------------------------------------------------------------
     _section("Step 3 — Model Feature Matrix")
-    X, y = build_model_matrix(df)
+    X, y, encoders = build_model_matrix(df)          # <-- fixed signature
     _log(f"Feature matrix: {X.shape}  |  Positive class rate: {y.mean():.3f}")
+    _log(f"Encoders fitted for {len(encoders)} bin columns")
 
-    # Engineer features for factor-based plots
     df_eng = engineer_features(df)
     df_eng["Depression"] = y.values
 
@@ -176,130 +175,121 @@ def run(data_path, output_dir, min_support, min_confidence,
         X_enriched = X.copy()
         _log("No rule features added.")
 
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # 7. Model Training & Evaluation
     # ------------------------------------------------------------------
     _section("Step 7 — Model Training & Evaluation")
 
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-    from sklearn.model_selection import train_test_split
     import joblib
     import json
+    from sklearn.linear_model   import LogisticRegression
+    from sklearn.ensemble       import RandomForestClassifier
+    from sklearn.metrics        import (accuracy_score, precision_score,
+                                        recall_score, f1_score, roc_auc_score)
+    from sklearn.model_selection import train_test_split
 
-    # Use enriched features
     X_model = X_enriched.copy()
     y_model = y.copy()
-
     _log(f"Training on enriched features: {X_model.shape}")
 
-    # Split
     X_train, X_test, y_train, y_test = train_test_split(
         X_model, y_model, test_size=0.2, random_state=42, stratify=y_model
     )
 
-    # Train models
     lr = LogisticRegression(max_iter=1000)
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
-
     lr.fit(X_train, y_train)
     rf.fit(X_train, y_train)
-
     _log("Models trained.")
 
-    # Evaluate
-    def evaluate(model, X_test, y_test):
-        prob = model.predict_proba(X_test)[:, 1]
+    def _evaluate(model, Xt, yt):
+        prob = model.predict_proba(Xt)[:, 1]
         pred = (prob >= 0.5).astype(int)
-
         return {
-            "accuracy": accuracy_score(y_test, pred),
-            "precision": precision_score(y_test, pred),
-            "recall": recall_score(y_test, pred),
-            "f1": f1_score(y_test, pred),
-            "roc_auc": roc_auc_score(y_test, prob)
+            "accuracy":  accuracy_score(yt, pred),
+            "precision": precision_score(yt, pred),
+            "recall":    recall_score(yt, pred),
+            "f1":        f1_score(yt, pred),
+            "roc_auc":   roc_auc_score(yt, prob),
         }
 
-    lr_metrics = evaluate(lr, X_test, y_test)
-    rf_metrics = evaluate(rf, X_test, y_test)
-
     metrics = {
-        "logistic_regression": lr_metrics,
-        "random_forest": rf_metrics
+        "logistic_regression": _evaluate(lr, X_test, y_test),
+        "random_forest":       _evaluate(rf, X_test, y_test),
     }
 
-    # Save models
     joblib.dump(lr, os.path.join(output_dir, "lr.pkl"))
     joblib.dump(rf, os.path.join(output_dir, "rf.pkl"))
 
-    # Save metrics
+    # *** FIX: persist one encoder per column ***
+    joblib.dump(encoders, os.path.join(output_dir, "bin_encoders.pkl"))
+    _log(f"bin_encoders.pkl saved  ({len(encoders)} encoders)")
+
     with open(os.path.join(output_dir, "metrics.json"), "w") as f:
         json.dump(metrics, f, indent=4)
 
-    _log("Models and metrics saved.")
+    _log(f"LR  Metrics: {metrics['logistic_regression']}")
+    _log(f"RF  Metrics: {metrics['random_forest']}")
 
-    _log(f"LR Metrics: {lr_metrics}")
-    _log(f"RF Metrics: {rf_metrics}")
-        # SHAP
-    _section("Step 7.1 — SHAP Analysis")
-
-    import shap
-    import matplotlib.pyplot as plt
-
-    _log("Sampling data for SHAP...")
-
-    sample_size = min(300, len(X_test))
-    X_sample = X_test.sample(n=sample_size, random_state=42)
-
-    explainer = shap.TreeExplainer(rf)
-
-    _log(f"Running SHAP on {len(X_sample)} samples...")
-    shap_values = explainer.shap_values(X_sample)
-
-    # Handle both SHAP output formats
-    if isinstance(shap_values, list):
-        shap_to_plot = shap_values[1]   # binary classification
-    else:
-        shap_to_plot = shap_values      # already correct shape
-
-    shap.summary_plot(shap_to_plot, X_sample, show=False)
-    plt.savefig(os.path.join(output_dir, "shap_summary.png"))
-    plt.close()
-
-    _log("SHAP summary saved.")
+    # Feature template (column order for inference alignment)
     template_path = os.path.join(output_dir, "feature_template.csv")
-
     X_model.head(1).to_csv(template_path, index=False)
-    
     _log(f"Feature template saved -> {template_path}")
+
+    # ------------------------------------------------------------------
+    # 7.1. SHAP Analysis (non-fatal if it fails)
+    # ------------------------------------------------------------------
+    _section("Step 7.1 — SHAP Analysis")
+    try:
+        import shap
+        import matplotlib.pyplot as plt
+
+        shap_n = min(300, len(X_test))
+        X_shap = X_test.sample(n=shap_n, random_state=42)
+        _log(f"Running SHAP on {shap_n} samples...")
+
+        explainer   = shap.TreeExplainer(rf)
+        shap_values = explainer.shap_values(X_shap)
+
+        shap_to_plot = shap_values[1] if isinstance(shap_values, list) else shap_values
+        shap.summary_plot(shap_to_plot, X_shap, show=False)
+        plt.savefig(os.path.join(output_dir, "shap_summary.png"))
+        plt.close()
+        _log("SHAP summary saved.")
+    except Exception as exc:
+        _log(f"SHAP skipped ({exc})")
+
     # ------------------------------------------------------------------
     # 8. Visualisations
     # ------------------------------------------------------------------
     _section("Step 8 — Generating Visualisations (14 charts)")
 
     charts = [
-        ("01 Target distribution",          lambda: plot_target_distribution(y, output_dir)),
-        ("02 Correlation heatmap",          lambda: plot_correlation_heatmap(X, output_dir)),
-        ("03 Rule scatter",                 lambda: plot_rule_scatter(rules_df, output_dir) if not rules_df.empty else None),
-        ("04 Rule confidence heatmap",      lambda: plot_rule_heatmap(dep_rules, output_dir=output_dir) if not dep_rules.empty else None),
-        ("05 Rule network",                 lambda: plot_rule_network(dep_rules, output_dir=output_dir) if not dep_rules.empty else None),
-        ("06 Top rules bar",                lambda: plot_top_rules_bar(rules_df, output_dir=output_dir) if not rules_df.empty else None),
-        ("07 Depression rate by factor",    lambda: plot_depression_rate_by_factor(df_eng, output_dir)),
-        ("08 Rule metric distributions",    lambda: plot_support_distribution(rules_df, output_dir) if not rules_df.empty else None),
-        ("09 Lift vs confidence line",      lambda: plot_lift_confidence_line(rules_df, output_dir) if not rules_df.empty else None),
-        ("10 Risk profile radar",           lambda: plot_risk_profile_radar(df_eng, output_dir)),
-        ("11 Cumulative rules",             lambda: plot_cumulative_rules(rules_df, output_dir) if not rules_df.empty else None),
-        ("12 Feature boxplots",             lambda: plot_feature_boxplots(X, y, output_dir)),
-        ("13 Conviction vs lift scatter",   lambda: plot_rule_conviction_scatter(rules_df, output_dir) if not rules_df.empty else None),
-        ("14 Itemset size distribution",    lambda: plot_itemset_size_distribution(fi_df, output_dir) if not fi_df.empty else None),
+        ("01 Target distribution",        lambda: plot_target_distribution(y, output_dir)),
+        ("02 Correlation heatmap",        lambda: plot_correlation_heatmap(X, output_dir)),
+        ("03 Rule scatter",               lambda: plot_rule_scatter(rules_df, output_dir)   if not rules_df.empty  else None),
+        ("04 Rule confidence heatmap",    lambda: plot_rule_heatmap(dep_rules, output_dir=output_dir) if not dep_rules.empty else None),
+        ("05 Rule network",               lambda: plot_rule_network(dep_rules, output_dir=output_dir) if not dep_rules.empty else None),
+        ("06 Top rules bar",              lambda: plot_top_rules_bar(rules_df, output_dir=output_dir) if not rules_df.empty  else None),
+        ("07 Depression rate by factor",  lambda: plot_depression_rate_by_factor(df_eng, output_dir)),
+        ("08 Rule metric distributions",  lambda: plot_support_distribution(rules_df, output_dir)     if not rules_df.empty  else None),
+        ("09 Lift vs confidence line",    lambda: plot_lift_confidence_line(rules_df, output_dir)     if not rules_df.empty  else None),
+        ("10 Risk profile radar",         lambda: plot_risk_profile_radar(df_eng, output_dir)),
+        ("11 Cumulative rules",           lambda: plot_cumulative_rules(rules_df, output_dir)         if not rules_df.empty  else None),
+        ("12 Feature boxplots",           lambda: plot_feature_boxplots(X, y, output_dir)),
+        ("13 Conviction vs lift scatter", lambda: plot_rule_conviction_scatter(rules_df, output_dir) if not rules_df.empty  else None),
+        ("14 Itemset size distribution",  lambda: plot_itemset_size_distribution(fi_df, output_dir)  if not fi_df.empty     else None),
     ]
 
     for name, fn in charts:
         _log(f"Generating: {name}...")
-        result = fn()
-        if result:
-            _log(f"  -> {result}")
+        try:
+            result = fn()
+            if result:
+                _log(f"  -> {result}")
+        except Exception as exc:
+            _log(f"  SKIPPED ({exc})")
+
     # ------------------------------------------------------------------
     # 9. Export artefacts
     # ------------------------------------------------------------------

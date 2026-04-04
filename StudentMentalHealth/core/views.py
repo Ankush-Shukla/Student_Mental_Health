@@ -1,38 +1,28 @@
 """
-core/views.py  –  final clean version
+core/views.py
 """
 from __future__ import annotations
-from django.db.models import F
+
 import json
+import logging
 from collections import defaultdict
 
-from django.contrib import messages
-from django.contrib.auth import authenticate
-from django.contrib.auth import login as auth_login
-from django.contrib.auth import logout as auth_logout
+from django.contrib             import messages
+from django.contrib.auth        import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Avg, Count
-from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models           import Avg, Count, F
+from django.shortcuts           import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 import shortuuid
 
-from .models import PredictionResult, Student, Survey, SurveyResponse
+from .models    import PredictionResult, Student, Survey, SurveyResponse
 from .inference import predict_student
 
-from django.http import HttpResponse
-from django.contrib.auth.models import User
-def create_superuser_view(request):
-    if not User.objects.filter(username="admin").exists():
-        User.objects.create_superuser(
-            username="admin",
-            email="admin@example.com",
-            password="admin123"
-        )
-        return HttpResponse("Superuser created")
-    return HttpResponse("Superuser already exists")
+logger = logging.getLogger(__name__)
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _random_id() -> str:
     return shortuuid.uuid()[:5]
@@ -42,7 +32,7 @@ def _is_admin(user) -> bool:
     return user.is_authenticated and user.is_staff
 
 
-# ── auth ──────────────────────────────────────────────────────────────────────
+# ── Auth views ────────────────────────────────────────────────────────────────
 
 def login_page(request):
     if request.user.is_authenticated:
@@ -67,7 +57,7 @@ def logout_view(request):
     return redirect("login_page")
 
 
-# ── student views ─────────────────────────────────────────────────────────────
+# ── Public / student views ────────────────────────────────────────────────────
 
 def survey_list(request):
     surveys = Survey.objects.filter(is_active=True).order_by("-created_at")
@@ -89,8 +79,10 @@ def submit_survey(request):
         messages.error(request, "Name and email are required.")
         return redirect("survey_list")
 
-    survey = get_object_or_404(Survey, id=data.get("survey_id", "").strip(), is_active=True)
+    survey_id = data.get("survey_id", "").strip()
+    survey    = get_object_or_404(Survey, id=survey_id, is_active=True)
 
+    # Cast numeric fields
     numeric_fields = {
         "Age": float, "CGPA": float,
         "Academic Pressure": int, "Work Pressure": int,
@@ -108,51 +100,51 @@ def submit_survey(request):
 
     student  = Student.objects.create(name=name, email=email)
     response = SurveyResponse.objects.create(
-         survey=survey,
-         student=student,
-         age=float(data.get("Age") or 0),
-         gender=data.get("Gender"),
-         cgpa=float(data.get("CGPA") or 0),
-
-         academic_pressure=int(data.get("Academic Pressure") or 0),
-         work_pressure=int(data.get("Work Pressure") or 0),
-         study_satisfaction=int(data.get("Study Satisfaction") or 0),
-         job_satisfaction=int(data.get("Job Satisfaction") or 0),
-
-         work_study_hours=float(data.get("Work/Study Hours") or 0),
-         sleep_duration=data.get("Sleep Duration"),
-         dietary_habits=data.get("Dietary Habits"),
-         suicidal_thoughts=data.get("Have you ever had suicidal thoughts ?"),
-         family_history=data.get("Family History of Mental Illness"),
-         financial_stress=str(data.get("Financial Stress") or 0),
-        )
+        survey             = survey,
+        student            = student,
+        age                = float(data.get("Age") or 0),
+        gender             = data.get("Gender", ""),
+        cgpa               = float(data.get("CGPA") or 0),
+        academic_pressure  = int(data.get("Academic Pressure") or 0),
+        work_pressure      = int(data.get("Work Pressure") or 0),
+        study_satisfaction = int(data.get("Study Satisfaction") or 0),
+        job_satisfaction   = int(data.get("Job Satisfaction") or 0),
+        work_study_hours   = float(data.get("Work/Study Hours") or 0),
+        sleep_duration     = data.get("Sleep Duration", ""),
+        dietary_habits     = data.get("Dietary Habits", ""),
+        suicidal_thoughts  = data.get("Have you ever had suicidal thoughts ?", "No"),
+        family_history     = data.get("Family History of Mental Illness", "No"),
+        financial_stress   = str(data.get("Financial Stress") or 0),
+    )
 
     ml_input = {
-        "Age": data.get("Age"), "Gender": data.get("Gender"),
-        "CGPA": data.get("CGPA",0),
-        "Academic Pressure": data.get("Academic Pressure",0),
-        "Work Pressure": data.get("Work Pressure", 0),
-        "Study Satisfaction": data.get("Study Satisfaction",0),
-        "Job Satisfaction": data.get("Job Satisfaction", 0),
-        "Work/Study Hours": data.get("Work/Study Hours"),
-        "Sleep Duration": data.get("Sleep Duration"),
-        "Dietary Habits": data.get("Dietary Habits"),
+        "Age":             data.get("Age"),
+        "Gender":          data.get("Gender"),
+        "CGPA":            data.get("CGPA", 0),
+        "Academic Pressure":  data.get("Academic Pressure", 0),
+        "Work Pressure":      data.get("Work Pressure", 0),
+        "Study Satisfaction": data.get("Study Satisfaction", 0),
+        "Job Satisfaction":   data.get("Job Satisfaction", 0),
+        "Work/Study Hours":   data.get("Work/Study Hours"),
+        "Sleep Duration":     data.get("Sleep Duration"),
+        "Dietary Habits":     data.get("Dietary Habits"),
         "Have you ever had suicidal thoughts ?": data.get("Have you ever had suicidal thoughts ?"),
-        "Family History of Mental Illness": data.get("Family History of Mental Illness"),
+        "Family History of Mental Illness":      data.get("Family History of Mental Illness"),
         "Financial Stress": str(data.get("Financial Stress", "")),
     }
 
     try:
         result = predict_student(ml_input)
     except RuntimeError as exc:
+        logger.exception("Prediction failed for response %d", response.id)
         messages.error(request, str(exc))
         return redirect("survey_list")
 
     PredictionResult.objects.create(
-        response=response,
-        risk_score=result["risk_score"],
-        prediction=result["prediction"],
-        risk_level=result["risk_level"],
+        response   = response,
+        risk_score = result["risk_score"],
+        prediction = result["prediction"],
+        risk_level = result["risk_level"],
     )
 
     request.session["result_data"] = {
@@ -171,12 +163,15 @@ def result_page(request):
     return render(request, "result.html", data)
 
 
-# ── admin views ───────────────────────────────────────────────────────────────
+# ── Admin views ───────────────────────────────────────────────────────────────
 
 @login_required
 @user_passes_test(_is_admin)
 def admin_dashboard(request):
-    surveys = Survey.objects.annotate(response_count=Count("surveyresponse")).order_by("-created_at")
+    surveys = Survey.objects.annotate(
+        response_count=Count("surveyresponse")
+    ).order_by("-created_at")
+
     context = {
         "surveys":         surveys,
         "total_responses": SurveyResponse.objects.count(),
@@ -187,53 +182,61 @@ def admin_dashboard(request):
 
 @login_required
 @user_passes_test(_is_admin)
+@require_POST
 def create_survey(request):
-    if request.method == "POST":
-        title = request.POST.get("title", "").strip()
-        if not title:
-            messages.error(request, "Title is required.")
-        else:
-            Survey.objects.create(
-                id=_random_id(),
-                title=title,
-                description=request.POST.get("desc", "").strip(),
-            )
-            messages.success(request, "Survey created.")
+    title = request.POST.get("title", "").strip()
+    if not title:
+        messages.error(request, "Title is required.")
+    else:
+        Survey.objects.create(
+            id          = _random_id(),
+            title       = title,
+            description = request.POST.get("desc", "").strip(),
+        )
+        messages.success(request, "Survey created.")
     return redirect("admin_dashboard")
 
 
 @login_required
 @user_passes_test(_is_admin)
 def survey_details(request, survey_id):
-    survey = get_object_or_404(Survey, id=survey_id)
-    filter_level = request.GET.get("filter")  # High, Moderate, Low, or None
+    survey       = get_object_or_404(Survey, id=survey_id)
+    filter_level = request.GET.get("filter")
 
-    responses = SurveyResponse.objects.filter(survey=survey).select_related(
-        "student", "predictionresult"
-    ).annotate(
-        risk_score=F("predictionresult__risk_score"),
-        risk_level=F("predictionresult__risk_level"),
+    responses = (
+        SurveyResponse.objects
+        .filter(survey=survey)
+        .select_related("student", "predictionresult")
+        .annotate(
+            risk_score=F("predictionresult__risk_score"),
+            risk_level=F("predictionresult__risk_level"),
+        )
     )
 
-    # Apply filter if specified
-    if filter_level in ["High", "Moderate", "Low"]:
+    if filter_level in ("High", "Moderate", "Low"):
         responses = responses.filter(risk_level=filter_level)
 
-    # Order by risk score descending
     responses = responses.order_by("-risk_score", "-created_at")
 
     return render(request, "survey_details.html", {
-        "survey": survey,
-        "responses": responses
+        "survey":    survey,
+        "responses": responses,
     })
+
+
 @login_required
 @user_passes_test(_is_admin)
 def student_detail(request, id):
+    """Detail view for a single survey response — staff only."""
     response   = get_object_or_404(
-        SurveyResponse.objects.select_related("student", "survey", "predictionresult"), id=id
+        SurveyResponse.objects.select_related("student", "survey", "predictionresult"),
+        id=id,
     )
     prediction = getattr(response, "predictionresult", None)
-    return render(request, "student_detail.html", {"response": response, "prediction": prediction})
+    return render(request, "student_detail.html", {
+        "response":   response,
+        "prediction": prediction,
+    })
 
 
 @login_required
@@ -258,7 +261,7 @@ def survey_analytics(request, survey_id):
     high_pct      = round(high_risk / total * 100, 1) if total else 0
     avg_score_pct = round(avg_score * 100, 1)
 
-    # histogram
+    # Risk-score histogram
     all_scores   = list(predictions.values_list("risk_score", flat=True))
     hist_buckets = [0, 0, 0, 0]
     for s in all_scores:
@@ -267,20 +270,18 @@ def survey_analytics(request, survey_id):
         elif s < 0.75: hist_buckets[2] += 1
         else:          hist_buckets[3] += 1
 
-    # trend
+    # Trend over time
     trend_d = defaultdict(int)
     for pred in predictions:
         trend_d[pred.response.created_at.date().isoformat()] += 1
     all_days = sorted(trend_d.keys())
 
-    # cumulative for print table
     cum, trend_rows = 0, []
     for d in all_days:
         cum += trend_d[d]
         trend_rows.append((d, trend_d[d], cum))
 
-    # print bars
-    bar_rows  = [
+    bar_rows = [
         ("Low Risk",      level_counts["Low"],      "#476b2f"),
         ("Moderate Risk", level_counts["Moderate"], "#b8722a"),
         ("High Risk",     level_counts["High"],     "#9e2b2b"),
@@ -291,8 +292,7 @@ def survey_analytics(request, survey_id):
         ["#476b2f", "#888080", "#b8722a", "#9e2b2b"],
     ))
 
-    # donut conic stops
-    low_pct     = round(level_counts["Low"]      / total * 100) if total else 0
+    low_pct     = round(level_counts["Low"] / total * 100)              if total else 0
     low_mod_pct = round((level_counts["Low"] + level_counts["Moderate"]) / total * 100) if total else 0
 
     context = {
@@ -304,11 +304,9 @@ def survey_analytics(request, survey_id):
         "avg_score_pct": avg_score_pct,
         "level_counts":  level_counts,
         "high_pct":      high_pct,
-        # JS data
         "trend_labels":  json.dumps(all_days),
         "trend_values":  json.dumps([trend_d[d] for d in all_days]),
         "hist_buckets":  json.dumps(hist_buckets),
-        # print data
         "bar_rows":      bar_rows,
         "hist_rows":     hist_rows,
         "trend_rows":    trend_rows,
@@ -320,8 +318,9 @@ def survey_analytics(request, survey_id):
 
 @login_required
 @user_passes_test(_is_admin)
+@require_POST
 def toggle_survey(request, survey_id):
-    survey          = get_object_or_404(Survey, id=survey_id)
+    survey           = get_object_or_404(Survey, id=survey_id)
     survey.is_active = not survey.is_active
     survey.save()
     return redirect("admin_dashboard")
