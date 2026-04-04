@@ -1,0 +1,785 @@
+items,support
+WorkPressure_Low,0.9999
+nan,0.9999
+"WorkPressure_Low, nan",0.9999
+"Suicidal_Yes, nan",0.6328
+"Suicidal_Yes, WorkPressure_Low",0.6328
+Suicidal_Yes,0.6328
+Depression_Yes,0.5855
+"Depression_Yes, nan",0.5855
+"Depression_Yes, WorkPressure_Low",0.5855
+Gender_Male,0.5572
+"Gender_Male, WorkPressure_Low, nan",0.5571
+"Gender_Male, nan",0.5571
+"Gender_Male, WorkPressure_Low",0.5571
+"StudyHrs_High, WorkPressure_Low",0.5316
+"StudyHrs_High, nan",0.5316
+StudyHrs_High,0.5316
+"FamilyHistory_No, nan",0.516
+FamilyHistory_No,0.516
+"FamilyHistory_No, WorkPressure_Low",0.516
+"Depression_Yes, Suicidal_Yes",0.5002
+"FamilyHistory_Yes, nan",0.484
+FamilyHistory_Yes,0.484
+"FamilyHistory_Yes, WorkPressure_Low",0.484
+FinStress_High,0.4477
+"FinStress_High, nan",0.4476
+"FinStress_High, WorkPressure_Low",0.4476
+Gender_Female,0.4428
+"Gender_Female, WorkPressure_Low",0.4428
+"Gender_Female, nan",0.4428
+"Depression_No, nan",0.4145
+"Depression_No, WorkPressure_Low",0.4145
+Depression_No,0.4145
+"AcadPressure_High, WorkPressure_Low",0.4104
+"AcadPressure_High, WorkPressure_Low, nan",0.4104
+"AcadPressure_High, nan",0.4104
+AcadPressure_High,0.4104
+"StudySat_Low, nan",0.4046
+StudySat_Low,0.4046
+"StudySat_Low, WorkPressure_Low",0.4046
+"StudySat_High, WorkPressure_Low",0.3864
+"StudySat_High, nan",0.3864
+StudySat_High,0.3864
+"CGPA_Mid, nan",0.3738
+CGPA_Mid,0.3738
+"CGPA_Mid, WorkPressure_Low",0.3738
+"Suicidal_No, nan",0.3672
+"Suicidal_No, WorkPressure_Low",0.3672
+Suicidal_No,0.3672
+"FinStress_Low, nan",0.3649
+"FinStress_Low, WorkPressure_Low",0.3649
+FinStress_Low,0.3649
+"StudyHrs_High, Suicidal_Yes",0.3606
+"Depression_Yes, StudyHrs_High",0.3545
+"Gender_Male, Suicidal_Yes",0.3523
+CGPA_High,0.3461
+"CGPA_High, WorkPressure_Low",0.3461
+"CGPA_High, WorkPressure_Low, nan",0.346
+"CGPA_High, nan",0.346
+"Depression_Yes, FinStress_High",0.3386
+"AcadPressure_High, Depression_Yes, WorkPressure_Low",0.3349
+"AcadPressure_High, Depression_Yes",0.3349
+"AcadPressure_High, Depression_Yes, nan",0.3349
+"Depression_Yes, Gender_Male",0.3267
+"FinStress_High, Suicidal_Yes",0.3262
+"AcadPressure_Low, WorkPressure_Low",0.3221
+AcadPressure_Low,0.3221
+"AcadPressure_Low, nan",0.3221
+"FamilyHistory_No, Suicidal_Yes",0.3202
+"FamilyHistory_Yes, Suicidal_Yes",0.3126
+"AcadPressure_High, Suicidal_Yes",0.3095
+"AcadPressure_High, Suicidal_Yes, WorkPressure_Low",0.3095
+"AcadPressure_High, Suicidal_Yes, nan",0.3094
+"Gender_Male, StudyHrs_High",0.2993
+Sleep_<5h,0.2978
+"Sleep_<5h, WorkPressure_Low",0.2978
+"Sleep_<5h, nan",0.2978
+"Depression_Yes, FamilyHistory_Yes",0.2965
+"FamilyHistory_No, Gender_Male",0.2915
+"Depression_Yes, FamilyHistory_No",0.289
+"AcadPressure_High, Depression_Yes, Suicidal_Yes",0.2844
+"Depression_No, Suicidal_No",0.2819
+Age_26-30,0.2812
+"Age_26-30, WorkPressure_Low",0.2812
+"Age_26-30, nan",0.2811
+"Gender_Female, Suicidal_Yes",0.2805
+CGPA_Low,0.2802
+"CGPA_Low, nan",0.2802
+"CGPA_Low, WorkPressure_Low",0.2801
+"Depression_Yes, StudySat_Low",0.2733
+"StudySat_Low, Suicidal_Yes",0.273
+"FamilyHistory_No, StudyHrs_High",0.2709
+StudyHrs_Low,0.2697
+"StudyHrs_Low, nan",0.2696
+"StudyHrs_Low, WorkPressure_Low",0.2696
+"AcadPressure_Moderate, nan",0.2674
+"AcadPressure_Moderate, WorkPressure_Low",0.2674
+AcadPressure_Moderate,0.2674
+"FamilyHistory_Yes, Gender_Male",0.2658
+"Sleep_7-8h, nan",0.2633
+Sleep_7-8h,0.2633
+"Sleep_7-8h, WorkPressure_Low",0.2633
+"FamilyHistory_Yes, StudyHrs_High",0.2607
+"Depression_Yes, Gender_Female",0.2588
+"Age_<=21, nan",0.2548
+Age_<=21,0.2548
+"Age_<=21, WorkPressure_Low",0.2548
+"FinStress_High, StudyHrs_High",0.2514
+"FinStress_High, Gender_Male",0.2481
+"Age_22-25, nan",0.2454
+"Age_22-25, WorkPressure_Low",0.2454
+Age_22-25,0.2454
+"CGPA_Mid, Suicidal_Yes",0.238
+"AcadPressure_Low, Depression_No",0.2325
+"Gender_Female, StudyHrs_High",0.2323
+"AcadPressure_High, StudyHrs_High, nan",0.2309
+"AcadPressure_High, StudyHrs_High, WorkPressure_Low",0.2309
+"AcadPressure_High, StudyHrs_High",0.2309
+"Depression_No, Gender_Male",0.2305
+"Depression_No, FinStress_Low",0.2285
+"Depression_No, FamilyHistory_No",0.2271
+"FamilyHistory_No, FinStress_High",0.227
+"StudySat_High, Suicidal_Yes",0.2263
+"Gender_Male, StudySat_Low, WorkPressure_Low",0.2258
+"Gender_Male, StudySat_Low, nan",0.2258
+"Gender_Male, StudySat_Low",0.2258
+"FamilyHistory_No, Gender_Female",0.2246
+"AcadPressure_High, Gender_Male",0.2231
+"StudyHrs_High, StudySat_Low",0.222
+"Sleep_5-6h, WorkPressure_Low",0.2216
+"Sleep_5-6h, nan",0.2216
+Sleep_5-6h,0.2216
+"FamilyHistory_Yes, FinStress_High",0.2206
+"CGPA_High, Suicidal_Yes",0.2203
+"CGPA_High, Suicidal_Yes, nan",0.2203
+"CGPA_High, Suicidal_Yes, WorkPressure_Low",0.2203
+"CGPA_Mid, Depression_Yes",0.2192
+Age_>30,0.2186
+"Age_>30, nan",0.2186
+"Age_>30, WorkPressure_Low, nan",0.2186
+"Age_>30, WorkPressure_Low",0.2186
+"FamilyHistory_Yes, Gender_Female",0.2182
+Sleep_>8h,0.2166
+"Sleep_>8h, nan",0.2166
+"Sleep_>8h, WorkPressure_Low",0.2166
+"CGPA_Mid, Gender_Male",0.2144
+"Gender_Male, StudySat_High",0.2111
+"StudySat_Moderate, WorkPressure_Low",0.2086
+StudySat_Moderate,0.2086
+"StudySat_Moderate, nan",0.2086
+"FamilyHistory_No, StudySat_Low",0.2075
+"CGPA_High, Depression_Yes, nan",0.2068
+"CGPA_High, Depression_Yes, WorkPressure_Low",0.2068
+"CGPA_High, Depression_Yes",0.2068
+"AcadPressure_High, FinStress_High, WorkPressure_Low",0.2063
+"AcadPressure_High, FinStress_High, nan",0.2063
+"AcadPressure_High, FinStress_High",0.2063
+"AcadPressure_High, FamilyHistory_No, WorkPressure_Low",0.2061
+"AcadPressure_High, FamilyHistory_No, nan",0.2061
+"AcadPressure_High, FamilyHistory_No",0.2061
+"Gender_Male, Suicidal_No",0.2049
+"AcadPressure_High, FamilyHistory_Yes",0.2043
+"AcadPressure_High, FamilyHistory_Yes, WorkPressure_Low",0.2043
+"AcadPressure_High, FamilyHistory_Yes, nan",0.2043
+"FinStress_Low, Gender_Male",0.2039
+"CGPA_Mid, StudyHrs_High",0.2024
+"FamilyHistory_No, StudySat_High",0.2009
+"FinStress_High, Gender_Female",0.1995
+"AcadPressure_High, Depression_Yes, StudyHrs_High",0.1992
+StudyHrs_Moderate,0.1987
+"StudyHrs_Moderate, WorkPressure_Low",0.1987
+"StudyHrs_Moderate, nan",0.1987
+"Sleep_<5h, Suicidal_Yes",0.1987
+"StudyHrs_High, StudySat_High",0.1982
+"FamilyHistory_Yes, StudySat_Low",0.1971
+"CGPA_High, Gender_Male",0.1962
+"AcadPressure_High, StudySat_Low",0.1959
+"AcadPressure_High, StudySat_Low, nan",0.1959
+"AcadPressure_High, StudySat_Low, WorkPressure_Low",0.1959
+"FamilyHistory_No, Suicidal_No",0.1958
+"Depression_No, StudySat_High",0.1946
+"CGPA_Mid, FamilyHistory_No",0.1936
+"FinStress_High, StudySat_Low",0.1924
+"Depression_Yes, Sleep_<5h",0.1921
+"Depression_Yes, StudySat_High",0.1918
+"FamilyHistory_No, FinStress_Low",0.1917
+"Depression_No, FamilyHistory_Yes",0.1874
+"AcadPressure_High, Gender_Female, WorkPressure_Low",0.1873
+"AcadPressure_High, Gender_Female, nan",0.1873
+FinStress_Moderate,0.1873
+"AcadPressure_High, Gender_Female",0.1873
+"FinStress_Moderate, WorkPressure_Low",0.1873
+"FinStress_Moderate, nan",0.1873
+"AcadPressure_High, Depression_Yes, FinStress_High",0.1871
+"FinStress_Low, Suicidal_Yes",0.1867
+"FamilyHistory_Yes, StudySat_High",0.1855
+"Depression_No, Gender_Female",0.184
+"CGPA_High, StudyHrs_High",0.1837
+"AcadPressure_Low, Gender_Male",0.1825
+"Age_<=21, Depression_Yes",0.1815
+"AcadPressure_High, StudyHrs_High, Suicidal_Yes",0.1804
+"CGPA_Mid, FamilyHistory_Yes",0.1801
+"CGPA_High, FamilyHistory_No, nan",0.179
+"CGPA_High, FamilyHistory_No, WorkPressure_Low",0.179
+"CGPA_High, FamilyHistory_No",0.179
+"FinStress_Low, StudyHrs_High",0.1789
+"Gender_Female, StudySat_Low",0.1788
+"FinStress_Low, Suicidal_No",0.1783
+"Depression_No, StudyHrs_High",0.1772
+"Age_26-30, Suicidal_Yes",0.176
+"Age_<=21, Suicidal_Yes",0.1758
+"CGPA_High, Depression_Yes, Suicidal_Yes",0.1755
+"Gender_Female, StudySat_High",0.1753
+"AcadPressure_Moderate, Suicidal_Yes",0.1752
+"CGPA_Low, Suicidal_Yes",0.1745
+"AcadPressure_Low, Suicidal_No",0.174
+"FamilyHistory_Yes, FinStress_Low",0.1732
+"AcadPressure_Low, FamilyHistory_No",0.1731
+"FamilyHistory_Yes, Suicidal_No",0.1714
+"StudyHrs_High, Suicidal_No",0.1711
+"Sleep_7-8h, Suicidal_Yes",0.1711
+"AcadPressure_High, Depression_Yes, FamilyHistory_Yes",0.1707
+"AcadPressure_High, Depression_Yes, StudySat_Low",0.1694
+"Gender_Male, Sleep_<5h",0.1678
+"CGPA_High, FamilyHistory_Yes",0.1671
+"CGPA_Mid, FinStress_High",0.1667
+"FinStress_High, StudySat_High",0.1658
+"AcadPressure_High, FinStress_High, Suicidal_Yes",0.1651
+"AcadPressure_High, Depression_Yes, FamilyHistory_No",0.1643
+"Gender_Female, Suicidal_No",0.1623
+"Age_22-25, Suicidal_Yes",0.162
+"FinStress_Low, Gender_Female",0.161
+"AcadPressure_Moderate, Depression_Yes",0.1609
+"Sleep_<5h, StudyHrs_High",0.1602
+"StudySat_High, Suicidal_No",0.1601
+"CGPA_Low, Depression_Yes",0.1595
+"AcadPressure_Low, Depression_No, Suicidal_No",0.1594
+"CGPA_Mid, Gender_Female",0.1593
+"Age_26-30, Depression_Yes",0.159
+"CGPA_High, FinStress_High",0.1573
+"AcadPressure_High, FamilyHistory_Yes, Suicidal_Yes",0.1568
+"Depression_Yes, Sleep_7-8h",0.1567
+"Age_26-30, Gender_Male",0.156
+"Age_22-25, Depression_Yes",0.1557
+"AcadPressure_Low, StudyHrs_High",0.155
+"CGPA_Mid, Depression_No",0.1545
+"AcadPressure_High, CGPA_Mid",0.1527
+"AcadPressure_High, CGPA_Mid, nan",0.1527
+"AcadPressure_High, FamilyHistory_No, Suicidal_Yes",0.1527
+"AcadPressure_High, CGPA_Mid, WorkPressure_Low",0.1527
+"Depression_No, StudyHrs_Low",0.1523
+"FinStress_Low, StudySat_High",0.1523
+"AcadPressure_High, Depression_Yes, Gender_Female",0.1517
+"AcadPressure_Moderate, Gender_Male",0.1516
+"AcadPressure_High, StudySat_Low, Suicidal_Yes",0.1515
+"FamilyHistory_No, Sleep_<5h",0.151
+"CGPA_High, Gender_Female",0.1499
+"CGPA_High, Gender_Female, WorkPressure_Low",0.1499
+"CGPA_High, Gender_Female, nan",0.1499
+"CGPA_High, StudySat_Low, WorkPressure_Low",0.1498
+"CGPA_High, StudySat_Low, nan",0.1498
+"CGPA_High, StudySat_Low",0.1498
+"AcadPressure_Low, FamilyHistory_Yes",0.149
+"CGPA_Mid, StudySat_Low",0.1487
+"AcadPressure_Low, Suicidal_Yes",0.1482
+"Gender_Male, StudyHrs_Low",0.1481
+"Gender_Male, StudyHrs_Low, WorkPressure_Low",0.1481
+"Gender_Male, StudyHrs_Low, nan",0.1481
+"CGPA_Mid, StudySat_High",0.1475
+"StudyHrs_Low, Suicidal_Yes",0.1471
+"FamilyHistory_Yes, Sleep_<5h",0.1468
+"CGPA_Low, Gender_Male",0.1466
+"Age_26-30, StudyHrs_High",0.1464
+"Age_26-30, FamilyHistory_No",0.1463
+"AcadPressure_Moderate, StudyHrs_High",0.1457
+"CGPA_Low, StudyHrs_High",0.1456
+"Gender_Male, Sleep_7-8h",0.1453
+"AcadPressure_Low, FinStress_Low",0.1452
+"CGPA_Low, FamilyHistory_No",0.1434
+"Sleep_7-8h, StudyHrs_High",0.1432
+"FamilyHistory_No, StudyHrs_Low",0.143
+"AcadPressure_High, Gender_Female, Suicidal_Yes",0.1411
+"AcadPressure_Low, StudySat_High",0.1409
+"Age_<=21, Gender_Male",0.1401
+"AcadPressure_Low, Gender_Female",0.1396
+"CGPA_High, Depression_No",0.1393
+"AcadPressure_High, CGPA_High",0.1388
+"FamilyHistory_No, Sleep_7-8h",0.1379
+"CGPA_Mid, FinStress_Low",0.1376
+"Sleep_5-6h, Suicidal_Yes",0.1375
+"AcadPressure_Moderate, FamilyHistory_No",0.1368
+"CGPA_Low, FamilyHistory_Yes",0.1368
+"Age_<=21, StudyHrs_High",0.1367
+"Depression_Yes, FinStress_Low",0.1364
+"Age_22-25, StudyHrs_High",0.1359
+"Age_22-25, Gender_Male",0.1358
+"CGPA_Mid, Suicidal_No",0.1358
+"FinStress_High, Sleep_<5h",0.1355
+"Age_26-30, FamilyHistory_Yes",0.1349
+"FinStress_Low, StudySat_Low",0.1342
+"AcadPressure_High, StudySat_High",0.134
+"AcadPressure_High, StudySat_High, WorkPressure_Low",0.134
+"AcadPressure_High, StudySat_High, nan",0.134
+"CGPA_Low, Gender_Female",0.1336
+"StudySat_Moderate, Suicidal_Yes",0.1332
+"Depression_No, Suicidal_Yes",0.1326
+"StudySat_Low, Suicidal_No",0.1316
+"Depression_No, StudySat_Low",0.1313
+"AcadPressure_Moderate, FamilyHistory_Yes",0.1306
+"AcadPressure_High, Sleep_<5h",0.1305
+"AcadPressure_High, Sleep_<5h, nan",0.1305
+"AcadPressure_High, Sleep_<5h, WorkPressure_Low",0.1305
+"Gender_Female, Sleep_<5h",0.13
+"Age_>30, Depression_No",0.1292
+"Age_<=21, FamilyHistory_No",0.1288
+"Age_22-25, FamilyHistory_No",0.1281
+"AcadPressure_High, FinStress_Low",0.1274
+"AcadPressure_High, FinStress_Low, WorkPressure_Low",0.1274
+"AcadPressure_High, FinStress_Low, nan",0.1274
+"FamilyHistory_Yes, StudyHrs_Low",0.1267
+"Depression_Yes, Sleep_5-6h",0.1261
+"Age_<=21, FamilyHistory_Yes",0.126
+"CGPA_High, Suicidal_No",0.1258
+"Age_<=21, FinStress_High",0.1255
+"FamilyHistory_Yes, Sleep_7-8h",0.1254
+"CGPA_High, StudySat_High",0.1254
+"Age_>30, Gender_Male",0.1253
+"AcadPressure_Moderate, FinStress_High",0.1253
+"Age_26-30, Gender_Female",0.1252
+"Sleep_>8h, Suicidal_Yes",0.1252
+"StudyHrs_Moderate, Suicidal_Yes",0.1251
+"AcadPressure_High, CGPA_Mid, Depression_Yes",0.1249
+"CGPA_High, FinStress_Low, WorkPressure_Low",0.1247
+"CGPA_High, FinStress_Low",0.1247
+"CGPA_High, FinStress_Low, nan",0.1246
+"Sleep_<5h, StudySat_Low",0.1239
+"CGPA_Low, FinStress_High",0.1237
+"StudyHrs_Low, Suicidal_No",0.1225
+"Age_26-30, Depression_No",0.1222
+"Gender_Male, Sleep_>8h",0.1221
+"Sleep_5-6h, StudyHrs_High",0.122
+"Gender_Male, Sleep_5-6h, WorkPressure_Low",0.1216
+"Gender_Male, Sleep_5-6h, nan",0.1216
+"Gender_Male, Sleep_5-6h",0.1216
+"Gender_Female, StudyHrs_Low",0.1215
+"FinStress_High, Suicidal_No",0.1215
+"FinStress_High, Sleep_7-8h",0.1208
+"CGPA_Low, Depression_No",0.1207
+"AcadPressure_Low, CGPA_Mid",0.1207
+"Depression_Yes, StudySat_Moderate",0.1202
+"Gender_Male, StudySat_Moderate",0.1201
+"FinStress_Moderate, Suicidal_Yes",0.12
+"Age_26-30, FinStress_High",0.1195
+"AcadPressure_High, Age_26-30",0.1191
+"AcadPressure_High, Age_26-30, nan",0.1191
+"AcadPressure_High, Age_26-30, WorkPressure_Low",0.1191
+"Age_>30, Suicidal_Yes, nan",0.119
+"Age_>30, Suicidal_Yes",0.119
+"Age_>30, Suicidal_Yes, WorkPressure_Low",0.119
+"AcadPressure_High, CGPA_Low, nan",0.1189
+"AcadPressure_High, CGPA_Low, WorkPressure_Low",0.1189
+"AcadPressure_High, CGPA_Low",0.1189
+"AcadPressure_High, FinStress_High, StudyHrs_High",0.1186
+"Gender_Female, Sleep_7-8h",0.118
+"Age_22-25, FinStress_High",0.1176
+"Depression_Yes, StudyHrs_Low",0.1174
+"AcadPressure_High, Age_<=21, nan",0.1174
+"AcadPressure_High, Age_<=21",0.1174
+"AcadPressure_High, Age_<=21, WorkPressure_Low",0.1174
+"Age_22-25, FamilyHistory_Yes",0.1173
+"AcadPressure_High, FamilyHistory_Yes, StudyHrs_High",0.117
+"AcadPressure_High, CGPA_Mid, Suicidal_Yes",0.1166
+"CGPA_Mid, Sleep_<5h",0.1162
+"AcadPressure_Low, FinStress_High",0.1161
+"AcadPressure_Moderate, Gender_Female",0.1159
+"Age_26-30, StudySat_Low",0.1155
+"AcadPressure_Low, CGPA_High",0.115
+"Age_<=21, Gender_Female",0.1147
+"Sleep_<5h, StudySat_High",0.1144
+"Depression_Yes, Sleep_<5h, StudyHrs_High",0.1142
+"AcadPressure_High, FamilyHistory_No, StudyHrs_High",0.1139
+"FamilyHistory_No, Sleep_5-6h",0.1139
+"Depression_Yes, StudyHrs_Moderate",0.1136
+"CGPA_Low, StudySat_High",0.1135
+"Age_>30, FamilyHistory_No, nan",0.1128
+"FamilyHistory_No, Sleep_>8h",0.1128
+"Age_>30, FamilyHistory_No",0.1128
+"Age_>30, FamilyHistory_No, WorkPressure_Low",0.1128
+"Age_>30, StudyHrs_High",0.1126
+"AcadPressure_High, StudyHrs_High, StudySat_Low",0.1122
+"AcadPressure_High, Depression_Yes, Sleep_<5h",0.1119
+"FinStress_Low, StudyHrs_Low",0.1119
+"CGPA_High, FamilyHistory_No, Suicidal_Yes",0.1116
+"AcadPressure_Moderate, StudySat_High",0.1115
+"StudyHrs_High, StudySat_Moderate",0.1113
+"Depression_Yes, FinStress_Moderate",0.1104
+"StudyHrs_Low, StudySat_High",0.1103
+"Depression_Yes, Sleep_>8h",0.1103
+"Gender_Male, StudyHrs_Moderate",0.1097
+"Age_22-25, Gender_Female",0.1096
+"FinStress_High, StudyHrs_Low",0.1094
+"Depression_No, FinStress_High",0.109
+"Age_22-25, StudySat_Low",0.109
+"Age_26-30, FinStress_Low",0.1088
+"FinStress_Low, Sleep_<5h",0.1085
+"FamilyHistory_Yes, Sleep_5-6h",0.1077
+"FamilyHistory_No, StudySat_Moderate",0.1074
+"AcadPressure_Low, Depression_No, StudySat_High",0.1069
+"Depression_No, Sleep_7-8h",0.1066
+"AcadPressure_Moderate, Depression_No",0.1066
+"Depression_No, Sleep_>8h",0.1063
+"CGPA_Low, StudySat_Low",0.1061
+"AcadPressure_Low, StudySat_Low",0.1061
+"Age_<=21, StudySat_High",0.1059
+"Sleep_>8h, StudyHrs_High",0.1059
+"Age_>30, FamilyHistory_Yes",0.1058
+"Depression_No, Sleep_<5h",0.1057
+"Sleep_7-8h, StudySat_Low",0.1057
+"CGPA_Low, Suicidal_No",0.1057
+"FinStress_Moderate, Gender_Male",0.1052
+"Age_26-30, Suicidal_No",0.1052
+"AcadPressure_Low, Depression_No, FamilyHistory_Yes",0.105
+"AcadPressure_High, Gender_Female, StudyHrs_High",0.1049
+"Age_26-30, StudySat_High",0.1049
+"AcadPressure_High, Sleep_7-8h, WorkPressure_Low",0.1047
+"AcadPressure_High, Sleep_7-8h",0.1047
+"AcadPressure_High, Sleep_7-8h, nan",0.1047
+"AcadPressure_High, FamilyHistory_Yes, FinStress_High",0.1045
+"AcadPressure_High, Age_<=21, Depression_Yes",0.1042
+"StudyHrs_Low, StudySat_Low",0.1039
+"StudyHrs_Low, StudySat_Low, nan",0.1039
+"FamilyHistory_Yes, Sleep_>8h",0.1038
+"CGPA_High, Depression_Yes, StudySat_Low",0.1032
+"AcadPressure_Low, StudyHrs_Low",0.1029
+"AcadPressure_Moderate, StudySat_Low",0.1026
+"CGPA_Low, FinStress_Low",0.1026
+"CGPA_High, Depression_Yes, FamilyHistory_No",0.1025
+"AcadPressure_High, Sleep_<5h, Suicidal_Yes",0.1022
+"FamilyHistory_No, StudyHrs_Moderate",0.1021
+"AcadPressure_High, FamilyHistory_No, FinStress_High",0.1018
+"CGPA_High, StudySat_Low, Suicidal_Yes",0.1015
+"Age_26-30, CGPA_Mid",0.1015
+"FamilyHistory_Yes, StudySat_Moderate",0.1013
+"FinStress_Moderate, StudyHrs_High",0.1012
+"AcadPressure_High, Suicidal_No",0.101
+"AcadPressure_High, Suicidal_No, nan",0.101
+"AcadPressure_High, Suicidal_No, WorkPressure_Low",0.101
+"AcadPressure_Moderate, CGPA_Mid",0.1004
+"Sleep_7-8h, StudySat_High",0.1001
+"AcadPressure_High, FinStress_High, StudySat_Low",0.1001
+"Gender_Female, Sleep_5-6h",0.1
+"Age_26-30, CGPA_High",0.1
+"Age_>30, Suicidal_No",0.0996
+"Age_<=21, StudySat_Low",0.0996
+"AcadPressure_Low, Depression_No, StudyHrs_High",0.0996
+"AcadPressure_High, Depression_Yes, StudySat_High",0.0993
+"Sleep_<5h, Suicidal_No",0.0992
+"CGPA_High, Sleep_<5h",0.0992
+"Age_<=21, CGPA_Mid",0.0986
+"CGPA_Mid, StudyHrs_Low",0.0986
+"AcadPressure_High, FamilyHistory_No, StudySat_Low",0.0985
+"Depression_Yes, FamilyHistory_Yes, StudySat_High",0.0983
+"AcadPressure_High, FamilyHistory_Yes, StudySat_Low",0.0975
+"FamilyHistory_No, FinStress_Moderate",0.0973
+"AcadPressure_High, Age_22-25",0.0967
+"AcadPressure_High, Age_22-25, WorkPressure_Low",0.0967
+"AcadPressure_High, Age_22-25, nan",0.0967
+"FinStress_High, Sleep_5-6h",0.0966
+"FamilyHistory_Yes, StudyHrs_Moderate",0.0966
+"AcadPressure_High, StudyHrs_Low",0.0964
+"AcadPressure_High, StudyHrs_Low, WorkPressure_Low",0.0964
+"AcadPressure_High, StudyHrs_Low, nan",0.0963
+"CGPA_High, Gender_Female, Suicidal_Yes",0.0963
+"Depression_No, Sleep_5-6h",0.0956
+"AcadPressure_High, FamilyHistory_Yes, Gender_Female",0.0956
+"AcadPressure_High, StudySat_High, Suicidal_Yes",0.0954
+"CGPA_High, StudyHrs_Low, nan",0.0953
+"CGPA_High, StudyHrs_Low",0.0953
+"CGPA_High, StudyHrs_Low, WorkPressure_Low",0.0953
+"CGPA_High, Sleep_7-8h",0.0951
+"AcadPressure_High, CGPA_Low, Depression_Yes",0.0951
+"AcadPressure_High, Age_26-30, Depression_Yes",0.0949
+"CGPA_Mid, Sleep_7-8h",0.0946
+"FinStress_High, Sleep_>8h",0.0945
+"Gender_Female, Sleep_>8h",0.0945
+"CGPA_High, Depression_No, Suicidal_No",0.0944
+"AcadPressure_High, FinStress_High, Gender_Female",0.0937
+"Age_>30, Gender_Female",0.0933
+"Age_>30, Gender_Female, nan",0.0933
+"Age_>30, Gender_Female, WorkPressure_Low",0.0933
+"FinStress_Low, Sleep_7-8h",0.0931
+"AcadPressure_Moderate, FinStress_Low",0.0924
+"Age_22-25, CGPA_Mid",0.0923
+"AcadPressure_Moderate, CGPA_High",0.0923
+"AcadPressure_Moderate, Suicidal_No",0.0923
+"Sleep_7-8h, Suicidal_No",0.0922
+"AcadPressure_High, Age_<=21, Suicidal_Yes",0.092
+"Age_>30, FinStress_Low, WorkPressure_Low",0.0919
+"Age_>30, FinStress_Low",0.0919
+"Age_>30, FinStress_Low, nan",0.0919
+"Depression_Yes, FinStress_High, Sleep_7-8h",0.0918
+"AcadPressure_High, FamilyHistory_No, Gender_Female",0.0917
+"Gender_Male, Sleep_<5h, StudyHrs_High",0.0914
+"Sleep_>8h, Suicidal_No",0.0914
+"AcadPressure_High, Sleep_5-6h, nan",0.0905
+"AcadPressure_High, Sleep_5-6h, WorkPressure_Low",0.0905
+"AcadPressure_High, Sleep_5-6h",0.0905
+"AcadPressure_Low, Sleep_<5h",0.0902
+"FamilyHistory_Yes, FinStress_Moderate",0.09
+"CGPA_High, Depression_Yes, Gender_Female",0.0899
+"AcadPressure_High, Age_26-30, Suicidal_Yes",0.0897
+"AcadPressure_Low, Depression_Yes",0.0897
+"Age_22-25, Depression_No",0.0897
+"Age_>30, Depression_Yes, WorkPressure_Low",0.0894
+"Age_>30, Depression_Yes",0.0894
+"Age_>30, Depression_Yes, nan",0.0894
+"FinStress_High, StudySat_Moderate",0.0893
+"Age_>30, StudySat_High",0.0891
+"Gender_Female, StudyHrs_Moderate",0.089
+"Sleep_5-6h, StudySat_Low",0.0887
+"Depression_No, StudySat_Moderate",0.0885
+"Gender_Female, StudySat_Moderate",0.0885
+"AcadPressure_High, Gender_Female, StudySat_Low",0.0878
+"AcadPressure_High, CGPA_Low, Suicidal_Yes",0.0877
+"Age_>30, Depression_No, Suicidal_No",0.0877
+"AcadPressure_Low, Age_26-30",0.0876
+"AcadPressure_High, CGPA_Mid, StudyHrs_High",0.0875
+"Gender_Male, StudySat_High, Suicidal_No",0.0873
+"FinStress_High, StudyHrs_Moderate",0.0869
+"Sleep_>8h, StudySat_High",0.0868
+"AcadPressure_Low, CGPA_Mid, Depression_No",0.0866
+"Age_22-25, StudySat_High",0.0865
+"AcadPressure_Low, CGPA_Low",0.0865
+"Age_22-25, CGPA_High",0.0863
+"FamilyHistory_No, StudySat_High, Suicidal_No",0.0862
+"Sleep_>8h, StudySat_Low",0.0861
+"AcadPressure_High, Depression_Yes, Sleep_7-8h",0.0859
+"Age_26-30, Sleep_<5h",0.0858
+"Depression_Yes, Suicidal_No",0.0853
+"Age_>30, FinStress_High",0.0851
+"Depression_No, StudyHrs_Moderate",0.0851
+"AcadPressure_High, FinStress_Low, Suicidal_Yes",0.085
+"AcadPressure_Low, Age_22-25",0.0849
+"Sleep_5-6h, StudySat_High",0.0847
+"Age_<=21, CGPA_High",0.0846
+"AcadPressure_High, Sleep_>8h, WorkPressure_Low",0.0845
+"AcadPressure_High, Sleep_>8h, nan",0.0845
+"AcadPressure_High, Sleep_>8h",0.0845
+"CGPA_Mid, Sleep_5-6h",0.0843
+"AcadPressure_High, Depression_Yes, FinStress_Low",0.0842
+"Sleep_5-6h, Suicidal_No",0.0841
+"Age_22-25, Suicidal_No",0.0834
+"AcadPressure_High, StudyHrs_Moderate, nan",0.0831
+"AcadPressure_High, StudyHrs_Moderate, WorkPressure_Low",0.0831
+"AcadPressure_High, StudyHrs_Moderate",0.0831
+"AcadPressure_High, Age_22-25, Depression_Yes",0.0829
+"FinStress_Low, StudySat_High, Suicidal_No",0.0829
+"Age_22-25, FinStress_Low",0.0828
+"CGPA_Low, Sleep_<5h",0.0825
+"FinStress_Moderate, Gender_Female",0.0821
+"AcadPressure_Low, Sleep_7-8h",0.0821
+"AcadPressure_Low, Age_>30",0.0818
+"FinStress_Low, Sleep_5-6h",0.0817
+"Age_<=21, FinStress_Low",0.0814
+"FinStress_Low, Sleep_>8h",0.0814
+"Age_>30, CGPA_Mid",0.0814
+"CGPA_Low, Depression_No, Suicidal_No",0.0813
+"FamilyHistory_Yes, Sleep_<5h, StudyHrs_High",0.0812
+"Age_>30, StudySat_Low, WorkPressure_Low",0.0805
+"Age_>30, StudySat_Low, nan",0.0805
+"Age_>30, StudySat_Low",0.0805
+"AcadPressure_High, StudySat_Moderate, WorkPressure_Low",0.0804
+"AcadPressure_High, StudySat_Moderate, nan",0.0804
+"AcadPressure_High, StudySat_Moderate",0.0804
+"AcadPressure_High, Sleep_7-8h, Suicidal_Yes",0.0799
+"AcadPressure_Low, FamilyHistory_Yes, Suicidal_No",0.0799
+"Age_26-30, CGPA_Low",0.0797
+"Age_<=21, Suicidal_No",0.079
+"FamilyHistory_No, Sleep_<5h, StudyHrs_High",0.079
+"StudyHrs_Moderate, StudySat_Low",0.0787
+"AcadPressure_High, CGPA_Mid, FamilyHistory_No",0.0787
+"CGPA_High, Sleep_5-6h",0.0785
+"CGPA_Mid, Sleep_>8h",0.0785
+"CGPA_High, Sleep_5-6h, nan",0.0785
+"CGPA_High, Sleep_5-6h, WorkPressure_Low",0.0785
+"FinStress_Low, StudySat_Moderate",0.0785
+"StudyHrs_Moderate, StudySat_High",0.0779
+"FinStress_Moderate, StudySat_Low",0.0779
+"Sleep_<5h, StudyHrs_Low",0.0778
+"AcadPressure_High, CGPA_Mid, FinStress_High",0.0776
+"CGPA_Mid, StudySat_Moderate",0.0776
+"AcadPressure_Low, StudySat_High, Suicidal_No",0.0775
+"Age_26-30, StudyHrs_Low",0.0775
+"Age_>30, Depression_Yes, Suicidal_Yes",0.0774
+"AcadPressure_Low, Sleep_>8h",0.0773
+"AcadPressure_High, Age_>30",0.0772
+"AcadPressure_Moderate, Sleep_<5h",0.0772
+"Depression_No, FinStress_Moderate",0.0769
+"CGPA_High, FamilyHistory_No, StudySat_Low",0.0768
+"AcadPressure_Low, StudyHrs_High, Suicidal_No",0.0768
+"AcadPressure_High, FinStress_Moderate, nan",0.0767
+"AcadPressure_High, FinStress_Moderate",0.0767
+"AcadPressure_High, FinStress_Moderate, WorkPressure_Low",0.0767
+"AcadPressure_Moderate, Sleep_7-8h",0.0766
+"CGPA_Low, StudyHrs_Low",0.0758
+"Age_<=21, Sleep_<5h",0.0757
+"AcadPressure_High, Depression_No",0.0755
+"AcadPressure_High, Depression_No, WorkPressure_Low",0.0755
+"AcadPressure_High, Depression_No, nan",0.0755
+"CGPA_High, FamilyHistory_No, Gender_Female",0.0754
+"StudySat_Moderate, Suicidal_No",0.0754
+"Age_>30, CGPA_High",0.0751
+"AcadPressure_Low, StudySat_Moderate",0.075
+"AcadPressure_Moderate, CGPA_Low",0.0748
+"AcadPressure_Moderate, Age_26-30",0.0745
+"AcadPressure_High, Age_22-25, Suicidal_Yes",0.0743
+"FinStress_Low, StudyHrs_Moderate",0.0742
+"AcadPressure_High, CGPA_Mid, FamilyHistory_Yes",0.074
+"CGPA_Low, Sleep_7-8h",0.0737
+"AcadPressure_High, StudyHrs_High, StudySat_High",0.0737
+"StudyHrs_Moderate, Suicidal_No",0.0736
+"Age_<=21, Depression_No",0.0733
+"CGPA_High, Sleep_>8h",0.0732
+"AcadPressure_High, Sleep_<5h, StudyHrs_High",0.0732
+"Gender_Female, StudySat_High, Suicidal_No",0.0728
+"CGPA_Mid, StudyHrs_Moderate",0.0728
+"Age_26-30, Sleep_7-8h",0.0727
+"Age_22-25, Sleep_<5h",0.0725
+"AcadPressure_Low, Sleep_5-6h",0.0724
+"AcadPressure_Moderate, FinStress_High, StudyHrs_High",0.0723
+"AcadPressure_Low, FamilyHistory_Yes, StudyHrs_High",0.072
+"Age_<=21, CGPA_Low",0.0716
+"AcadPressure_High, CGPA_Mid, StudySat_Low",0.0716
+"AcadPressure_High, Depression_Yes, Sleep_5-6h",0.0716
+"CGPA_High, StudySat_Moderate",0.0708
+"AcadPressure_Moderate, StudyHrs_Low",0.0704
+"AcadPressure_Moderate, Age_<=21",0.0696
+"CGPA_Mid, FinStress_Moderate",0.0694
+"Gender_Female, Sleep_<5h, StudyHrs_High",0.0688
+"AcadPressure_High, CGPA_Mid, Gender_Female",0.0685
+"FinStress_Moderate, StudySat_High",0.0683
+"Age_<=21, Sleep_7-8h",0.0683
+"Age_22-25, FinStress_High, StudyHrs_High",0.0683
+"AcadPressure_High, Depression_Yes, StudyHrs_Low",0.0681
+"Sleep_7-8h, StudyHrs_Low",0.068
+"AcadPressure_High, FinStress_Low, StudyHrs_High",0.0678
+"AcadPressure_Low, Age_<=21",0.0678
+"AcadPressure_High, Depression_Yes, StudyHrs_Moderate",0.0676
+"Depression_Yes, FinStress_High, StudySat_Moderate",0.0675
+"AcadPressure_High, FamilyHistory_No, StudySat_High",0.0673
+"FinStress_Moderate, Suicidal_No",0.0673
+"CGPA_High, StudyHrs_Moderate",0.0671
+"AcadPressure_High, FinStress_High, Sleep_<5h",0.0671
+"AcadPressure_Low, StudyHrs_High, StudySat_High",0.067
+"AcadPressure_High, StudyHrs_Low, Suicidal_Yes",0.0669
+"Age_22-25, CGPA_Low",0.0667
+"AcadPressure_High, FamilyHistory_Yes, StudySat_High",0.0667
+"AcadPressure_High, Sleep_5-6h, Suicidal_Yes",0.0664
+"AcadPressure_High, FamilyHistory_No, FinStress_Low",0.0662
+"AcadPressure_High, CGPA_Low, StudyHrs_High",0.0662
+"AcadPressure_High, FamilyHistory_Yes, Sleep_<5h",0.0661
+"AcadPressure_High, FinStress_High, StudySat_High",0.0661
+"AcadPressure_High, Depression_Yes, StudySat_Moderate",0.0661
+"AcadPressure_High, Age_26-30, StudyHrs_High",0.0659
+"AcadPressure_Low, FamilyHistory_Yes, StudySat_High",0.0658
+"AcadPressure_High, Depression_Yes, Sleep_>8h",0.0654
+"AcadPressure_High, Age_<=21, StudyHrs_High",0.0651
+"Age_22-25, Sleep_7-8h",0.0651
+"Age_22-25, StudyHrs_Low",0.0651
+"CGPA_High, FamilyHistory_No, FinStress_Low",0.0651
+"CGPA_Low, Sleep_>8h",0.0649
+"AcadPressure_Low, CGPA_Mid, Suicidal_No",0.0649
+"AcadPressure_Low, Age_26-30, Depression_No",0.0646
+"Sleep_>8h, StudyHrs_Low",0.0646
+"AcadPressure_High, FamilyHistory_No, Sleep_<5h",0.0644
+"AcadPressure_Low, StudyHrs_Moderate",0.0642
+"CGPA_High, Gender_Female, StudySat_Low",0.0642
+"CGPA_High, FinStress_Moderate",0.064
+"Age_26-30, Sleep_5-6h",0.0639
+"CGPA_High, FinStress_Low, Suicidal_Yes",0.0638
+"Age_>30, Sleep_<5h",0.0638
+"AcadPressure_Moderate, Age_22-25",0.0638
+"AcadPressure_High, Depression_Yes, FinStress_Moderate",0.0637
+"Age_<=21, StudyHrs_Low",0.0636
+"Age_>30, StudyHrs_Low",0.0635
+"Age_>30, StudyHrs_Low, nan",0.0635
+"Age_>30, StudyHrs_Low, WorkPressure_Low",0.0634
+"AcadPressure_High, Gender_Female, StudySat_High",0.0632
+"CGPA_High, Depression_No, StudySat_High",0.063
+"CGPA_High, Depression_No, FamilyHistory_Yes",0.0628
+"AcadPressure_High, Sleep_<5h, StudySat_Low",0.0628
+"AcadPressure_High, StudySat_Moderate, Suicidal_Yes",0.0625
+"AcadPressure_High, Age_<=21, FinStress_High",0.0623
+"FamilyHistory_No, FinStress_High, Sleep_7-8h",0.0623
+"Age_>30, CGPA_Low",0.0621
+"AcadPressure_High, StudyHrs_Moderate, Suicidal_Yes",0.0621
+"Age_>30, CGPA_Low, nan",0.0621
+"Age_>30, CGPA_Low, WorkPressure_Low",0.0621
+"AcadPressure_Low, Depression_No, FinStress_High",0.0619
+"CGPA_Mid, Sleep_<5h, StudyHrs_High",0.0615
+"AcadPressure_High, Sleep_7-8h, StudyHrs_High",0.0613
+"AcadPressure_High, FamilyHistory_Yes, FinStress_Low",0.0612
+"Age_>30, Depression_No, StudySat_High",0.0611
+"AcadPressure_Low, FinStress_Moderate",0.0609
+"Age_26-30, StudySat_Moderate",0.0608
+"Age_22-25, Depression_No, Suicidal_No",0.0608
+"AcadPressure_High, Sleep_>8h, Suicidal_Yes",0.0608
+"AcadPressure_Low, Depression_No, Sleep_>8h",0.0607
+"Age_>30, FamilyHistory_No, Suicidal_Yes",0.0606
+"Age_>30, Depression_No, FamilyHistory_Yes",0.0606
+"AcadPressure_High, CGPA_Low, FamilyHistory_Yes",0.0605
+"AcadPressure_Low, FinStress_High, StudyHrs_High",0.0605
+"AcadPressure_High, Age_26-30, FamilyHistory_No",0.0604
+"AcadPressure_Low, Depression_No, Sleep_<5h",0.0603
+"CGPA_Low, StudySat_Moderate",0.0602
+"AcadPressure_High, Age_26-30, StudySat_Low",0.0599
+"Sleep_<5h, StudyHrs_Moderate",0.0598
+"CGPA_High, FamilyHistory_Yes, StudySat_High",0.0597
+"AcadPressure_Moderate, Age_>30",0.0595
+"Sleep_<5h, StudySat_Moderate",0.0594
+"AcadPressure_Low, CGPA_Mid, StudyHrs_High",0.0594
+"AcadPressure_High, Age_<=21, FamilyHistory_Yes",0.0593
+"CGPA_Low, Depression_No, StudySat_High",0.0593
+"AcadPressure_High, FinStress_Moderate, Suicidal_Yes",0.0593
+"Sleep_5-6h, StudyHrs_Low",0.059
+"CGPA_Low, Sleep_5-6h",0.0589
+"AcadPressure_High, CGPA_Low, FinStress_High",0.0589
+"CGPA_Low, StudyHrs_Moderate",0.0588
+"AcadPressure_High, Age_26-30, FamilyHistory_Yes",0.0587
+"AcadPressure_Moderate, Sleep_5-6h",0.0587
+"Age_26-30, Sleep_>8h",0.0586
+"FamilyHistory_Yes, FinStress_High, Sleep_7-8h",0.0585
+"AcadPressure_High, CGPA_Low, FamilyHistory_No",0.0584
+"AcadPressure_High, FinStress_Low, Gender_Female",0.0584
+"CGPA_High, FamilyHistory_Yes, Suicidal_No",0.0583
+"AcadPressure_Low, Depression_No, Sleep_7-8h",0.0582
+"AcadPressure_High, Age_<=21, FamilyHistory_No",0.0581
+"AcadPressure_High, Gender_Female, Sleep_<5h",0.0578
+"AcadPressure_High, Age_26-30, FinStress_High",0.0578
+"Sleep_7-8h, StudySat_Moderate",0.0575
+"Age_>30, Sleep_7-8h",0.0572
+"Age_26-30, StudyHrs_Moderate",0.0572
+"AcadPressure_High, FinStress_Low, StudySat_Low",0.057
+"AcadPressure_Low, CGPA_Mid, FamilyHistory_Yes",0.057
+"AcadPressure_High, CGPA_Low, Gender_Female",0.057
+"StudyHrs_Low, StudySat_High, Suicidal_No",0.0568
+"Age_<=21, Sleep_>8h",0.0565
+"AcadPressure_High, Age_22-25, StudyHrs_High",0.0564
+"Gender_Male, StudyHrs_Low, StudySat_Low",0.0559
+"StudyHrs_Low, StudySat_Moderate",0.0552
+"AcadPressure_Moderate, Sleep_>8h",0.0548
+"AcadPressure_High, FamilyHistory_No, Sleep_7-8h",0.0547
+"Age_<=21, StudyHrs_Moderate",0.0546
+"CGPA_Low, FamilyHistory_Yes, StudySat_High",0.0544
+"CGPA_High, Sleep_<5h, StudyHrs_High",0.0544
+"AcadPressure_High, Age_26-30, Gender_Female",0.0543
+"Age_<=21, Sleep_5-6h",0.0542
+"AcadPressure_Low, FamilyHistory_Yes, FinStress_High",0.054
+"CGPA_Low, Depression_No, FamilyHistory_Yes",0.054
+"CGPA_High, FinStress_Low, Gender_Female",0.0539
+"FinStress_Moderate, Sleep_<5h",0.0538
+"Age_22-25, Sleep_5-6h",0.0538
+"CGPA_Low, FinStress_Moderate",0.0538
+"Age_22-25, Sleep_>8h",0.0538
+"FinStress_Low, Sleep_<5h, StudyHrs_High",0.0537
+"AcadPressure_High, Age_<=21, Gender_Female",0.0536
+"AcadPressure_Low, Depression_No, StudySat_Moderate",0.0535
+"AcadPressure_Low, CGPA_Mid, StudySat_High",0.0534
+"AcadPressure_High, FamilyHistory_No, Suicidal_No",0.0534
+"AcadPressure_High, CGPA_Low, StudySat_Low",0.0533
+"AcadPressure_High, FinStress_High, Sleep_7-8h",0.0533
+"AcadPressure_Moderate, StudySat_Moderate",0.0533
+"Age_26-30, FinStress_Moderate",0.0528
+"AcadPressure_High, Age_<=21, StudySat_Low",0.0523
+"CGPA_High, StudySat_High, Suicidal_No",0.0522
+"CGPA_High, StudyHrs_Low, Suicidal_Yes",0.0521
+"Sleep_7-8h, StudyHrs_Moderate",0.0521
+"AcadPressure_High, Sleep_5-6h, StudyHrs_High",0.052
+"AcadPressure_Moderate, StudyHrs_Moderate",0.0514
+"Age_>30, Gender_Female, Suicidal_Yes",0.0514
+"AcadPressure_High, Age_22-25, FinStress_High",0.0511
+"AcadPressure_High, CGPA_Mid, StudySat_High",0.0509
+"AcadPressure_High, Depression_Yes, Suicidal_No",0.0506
+"AcadPressure_High, StudyHrs_High, Suicidal_No",0.0505
+"AcadPressure_High, Depression_No, Suicidal_No",0.0504
