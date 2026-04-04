@@ -47,7 +47,7 @@ _DJANGO_APP_DIR = Path(__file__).resolve().parent
 _DJANGO_ROOT    = _DJANGO_APP_DIR.parent
 _PROJECT_ROOT   = _DJANGO_ROOT.parent
 _SRC_DIR        = _PROJECT_ROOT / "src"
-_OUTPUTS_DIR    = _PROJECT_ROOT / "outputs"
+_OUTPUTS_DIR = _DJANGO_ROOT / "outputs"
 
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
