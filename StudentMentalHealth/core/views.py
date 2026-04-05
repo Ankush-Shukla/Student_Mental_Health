@@ -21,7 +21,7 @@ from .inference import predict_student
 
 logger = logging.getLogger(__name__)
 
-
+import requests
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -33,9 +33,14 @@ def _random_id() -> str:
 def _is_admin(user) -> bool:
     return user.is_authenticated and user.is_staff
 
-def health_check():
-    return 'OK' , 200
+def health_check(request):
+    url = 'https://student-mental-health-06xp.onrender.com/'
 
+    x = requests.get(url)
+    if(x.ok):
+        return 200
+    else:
+        return 404
 # ── Auth views ────────────────────────────────────────────────────────────────
 
 def login_page(request):
@@ -179,7 +184,8 @@ def admin_dashboard(request):
     context = {
         "surveys":         surveys,
         "total_responses": SurveyResponse.objects.count(),
-        "total_high_risk": PredictionResult.objects.filter(prediction=1).count(),
+        "total_high_risk": PredictionResult.objects.filter(risk_level="High").count(),
+        
     }
     return render(request, "admin_dashboard.html", context)
 
@@ -253,7 +259,7 @@ def survey_analytics(request, survey_id):
     ).select_related("response")
 
     total     = predictions.count()
-    high_risk = predictions.filter(prediction=1).count()
+    high_risk = level_counts["High"]
     avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
 
     level_counts = {
