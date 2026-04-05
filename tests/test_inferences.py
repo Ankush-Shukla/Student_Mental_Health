@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from StudentMentalHealth.core.inference import predict_student
 
 # Sample input (must match your CSV structure EXACTLY)

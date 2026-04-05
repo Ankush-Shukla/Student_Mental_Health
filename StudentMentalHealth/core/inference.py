@@ -28,10 +28,10 @@ from __future__ import annotations
 import logging
 import sys
 from functools import lru_cache
-from pathlib   import Path
+from pathlib import Path
 
 import joblib
-import numpy  as np
+import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -97,7 +97,6 @@ def _load_artefacts() -> tuple:
     encoders  = joblib.load(required["encoders"])
     dep_rules = pd.read_csv(required["dep_rules"])
     return model, template, encoders, dep_rules
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -155,7 +154,7 @@ def _build_feature_row(df_eng: pd.DataFrame, encoders: dict) -> pd.DataFrame:
         enc_col = col + "_Enc"
         enc_features.append(enc_col)
         if col in encoders and col in df_eng.columns:
-            le  = encoders[col]
+            le = encoders[col]
             val = str(df_eng[col].iloc[0])
             # FIX: match the sentinel used during training
             val = "Unknown" if val == "nan" else val
@@ -169,7 +168,9 @@ def _build_feature_row(df_eng: pd.DataFrame, encoders: dict) -> pd.DataFrame:
     )
 
     feature_cols = _BASE_FEATURES + enc_features + ["Gender_Male"]
+
     return pd.DataFrame([row])[feature_cols]
+
 
 def _build_item_set(df_eng: pd.DataFrame) -> set[str]:
     items: set[str] = set()
@@ -184,10 +185,11 @@ def _build_item_set(df_eng: pd.DataFrame) -> set[str]:
             if val != "nan":          # FIX: don't add nan to item set
                 items.add(val)
 
-    items.add("Suicidal_Yes"      if r.get("Suicidal_Thoughts", 0) else "Suicidal_No")
-    items.add("FamilyHistory_Yes" if r.get("Family_History",     0) else "FamilyHistory_No")
+    items.add("Suicidal_Yes" if r.get("Suicidal_Thoughts", 0) else "Suicidal_No")
+    items.add("FamilyHistory_Yes" if r.get("Family_History", 0) else "FamilyHistory_No")
 
     return items
+    
     
 
 
@@ -199,6 +201,10 @@ def _compute_rule_features(items: set[str], dep_rules: pd.DataFrame) -> dict[str
         result[f"Rule_{i:03d}"] = int(ant_items.issubset(items))
     return result
 
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -221,25 +227,12 @@ def predict_student(student_dict: dict) -> dict:
     """
     model, template, encoders, dep_rules = _load_artefacts()
 
-    df         = _clean_single(student_dict)
-    df_eng     = engineer_features(df)
-    X          = _build_feature_row(df_eng, encoders)
-    items      = _build_item_set(df_eng)
+    df = _clean_single(student_dict)
+    df_eng = engineer_features(df)
+    X = _build_feature_row(df_eng, encoders)
+    items = _build_item_set(df_eng)
     rule_feats = _compute_rule_features(items, dep_rules)
-# --- DEBUG: print what the model actually sees ---
-    print("=== BIN VALUES ===")
-    from preprocessing import BIN_COLS
-    for col in BIN_COLS:
-        val = str(df_eng[col].iloc[0])
-        enc = encoders.get(col)
-        in_classes = val in enc.classes_ if enc else False
-        print(f"  {col}: '{val}' | known={in_classes} | classes={list(enc.classes_) if enc else '?'}")
 
-    print("\n=== ITEM SET ===", items)
-    print("\n=== RULE HITS ===", {k: v for k, v in rule_feats.items() if v})
-    print("\n=== FEATURE ROW ===")
-    print(X.to_string())
-    # --- END DEBUG ---
     # Align to training feature template
     X_aligned = pd.DataFrame(0, index=[0], columns=template.columns)
     for col in X.columns:
@@ -250,15 +243,16 @@ def predict_student(student_dict: dict) -> dict:
             X_aligned[col] = val
 
     X_aligned = X_aligned.fillna(0).astype(float)
-    print("\n=== X_ALIGNED (full template) ===")
-    print(X_aligned.to_string())
-    print("\nNon-zero columns:", X_aligned.columns[X_aligned.iloc[0] != 0].tolist())
+
     prob = float(model.predict_proba(X_aligned)[0][1])
     pred = int(prob >= 0.5)
 
-    if   prob < 0.40: level = "Low"
-    elif prob < 0.70: level = "Moderate"
-    else:             level = "High"
+    if prob < 0.40:
+        level = "Low"
+    elif prob < 0.70:
+        level = "Moderate"
+    else:
+        level = "High"
 
     logger.debug(
         "predict_student | items=%s | rule_hits=%d | prob=%.4f",
