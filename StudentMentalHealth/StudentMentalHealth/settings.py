@@ -12,7 +12,8 @@ SECRET_KEY = os.environ.get(
     "django-insecure-dev-key-replace-before-any-deployment"
 )
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
+# DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get(
     "DJANGO_ALLOWED_HOSTS",

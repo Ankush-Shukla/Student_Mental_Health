@@ -258,9 +258,7 @@ def survey_analytics(request, survey_id):
         response__in=responses
     ).select_related("response")
 
-    total     = predictions.count()
-    high_risk = level_counts["High"]
-    avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
+
 
     level_counts = {
         "Low":      predictions.filter(risk_level="Low").count(),
@@ -268,6 +266,10 @@ def survey_analytics(request, survey_id):
         "High":     predictions.filter(risk_level="High").count(),
     }
 
+    total     = predictions.count()
+    high_risk = level_counts["High"]
+    avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
+    
     high_pct      = round(high_risk / total * 100, 1) if total else 0
     avg_score_pct = round(avg_score * 100, 1)
 
