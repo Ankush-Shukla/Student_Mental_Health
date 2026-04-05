@@ -11,23 +11,36 @@
         {% if survey.description %}&nbsp;·&nbsp; {{ survey.description }}{% endif %}
       </p>
     </div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
       <a href="{% url 'survey_analytics' survey.id %}" class="btn btn-secondary btn-sm">Analytics</a>
       <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Dashboard</a>
-    <form method="get" style="display:inline;">
-  <select name="filter" class="btn btn-secondary btn-sm" onchange="this.form.submit()">
-    <option value="">Show All</option>
-    <option value="High" {% if request.GET.filter == "High" %}selected{% endif %}>High risk only</option>
-    <option value="Moderate" {% if request.GET.filter == "Moderate" %}selected{% endif %}>Moderate risk only</option>
-    <option value="Low" {% if request.GET.filter == "Low" %}selected{% endif %}>Low risk only</option>
-  </select>
-</form>
+      <a href="{% url 'import_csv' survey.id %}"
+         class="btn btn-primary btn-sm"
+         style="display:inline-flex;align-items:center;gap:.4rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Import CSV
+      </a>
+      <form method="get" style="display:inline;">
+        <select name="filter" class="btn btn-secondary btn-sm" onchange="this.form.submit()">
+          <option value="">Show All</option>
+          <option value="High" {% if request.GET.filter == "High" %}selected{% endif %}>High risk only</option>
+          <option value="Moderate" {% if request.GET.filter == "Moderate" %}selected{% endif %}>Moderate risk only</option>
+          <option value="Low" {% if request.GET.filter == "Low" %}selected{% endif %}>Low risk only</option>
+        </select>
+      </form>
     </div>
   </div>
 
   {% if not responses %}
   <div class="card" style="text-align:center;padding:3rem;">
-    <p style="margin:0;">No responses submitted yet.</p>
+    <p style="margin:0 0 1rem;">No responses submitted yet.</p>
+    <a href="{% url 'import_csv' survey.id %}" class="btn btn-primary btn-sm">Import CSV to get started</a>
   </div>
   {% else %}
 

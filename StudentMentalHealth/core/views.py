@@ -3,6 +3,8 @@ core/views.py
 """
 from __future__ import annotations
 
+import csv
+import io
 import json
 import logging
 from collections import defaultdict
@@ -33,14 +35,172 @@ def _random_id() -> str:
 def _is_admin(user) -> bool:
     return user.is_authenticated and user.is_staff
 
+
 def health_check(request):
     url = 'https://student-mental-health-06xp.onrender.com/'
-
     x = requests.get(url)
     if(x.ok):
         return 200
     else:
         return 404
+
+
+# ── CSV column aliases ────────────────────────────────────────────────────────
+# Maps various header names a CSV might use → our canonical field name
+_COL_ALIASES: dict[str, str] = {
+    # Age
+    "age": "Age",
+    # Gender
+    "gender": "Gender",
+    "sex": "Gender",
+    # CGPA
+    "cgpa": "CGPA",
+    "gpa": "CGPA",
+    # Academic Pressure
+    "academic pressure": "Academic Pressure",
+    "academic_pressure": "Academic Pressure",
+    # Work Pressure
+    "work pressure": "Work Pressure",
+    "work_pressure": "Work Pressure",
+    # Study Satisfaction
+    "study satisfaction": "Study Satisfaction",
+    "study_satisfaction": "Study Satisfaction",
+    # Job Satisfaction
+    "job satisfaction": "Job Satisfaction",
+    "job_satisfaction": "Job Satisfaction",
+    # Work/Study Hours
+    "work/study hours": "Work/Study Hours",
+    "work_study_hours": "Work/Study Hours",
+    "study hours": "Work/Study Hours",
+    "study_hours": "Work/Study Hours",
+    # Sleep Duration
+    "sleep duration": "Sleep Duration",
+    "sleep_duration": "Sleep Duration",
+    "sleep": "Sleep Duration",
+    # Dietary Habits
+    "dietary habits": "Dietary Habits",
+    "dietary_habits": "Dietary Habits",
+    "diet": "Dietary Habits",
+    # Suicidal Thoughts
+    "have you ever had suicidal thoughts ?": "Have you ever had suicidal thoughts ?",
+    "have you ever had suicidal thoughts": "Have you ever had suicidal thoughts ?",
+    "suicidal thoughts": "Have you ever had suicidal thoughts ?",
+    "suicidal_thoughts": "Have you ever had suicidal thoughts ?",
+    # Family History
+    "family history of mental illness": "Family History of Mental Illness",
+    "family_history_of_mental_illness": "Family History of Mental Illness",
+    "family history": "Family History of Mental Illness",
+    "family_history": "Family History of Mental Illness",
+    # Financial Stress
+    "financial stress": "Financial Stress",
+    "financial_stress": "Financial Stress",
+    # Depression (optional label column — not used for inference but stored)
+    "depression": "Depression",
+    # Student info
+    "name": "name",
+    "full name": "name",
+    "full_name": "name",
+    "email": "email",
+    "email address": "email",
+}
+
+_REQUIRED_FIELDS = [
+    "Age", "Gender", "CGPA", "Academic Pressure", "Study Satisfaction",
+    "Work/Study Hours", "Sleep Duration", "Dietary Habits",
+    "Have you ever had suicidal thoughts ?", "Family History of Mental Illness",
+    "Financial Stress",
+]
+
+_SLEEP_NORMALISE = {
+    "less than 5 hours": "less than 5 hours",
+    "less than 5": "less than 5 hours",
+    "<5": "less than 5 hours",
+    "5-6 hours": "5-6 hours",
+    "5-6": "5-6 hours",
+    "7-8 hours": "7-8 hours",
+    "7-8": "7-8 hours",
+    "more than 8 hours": "more than 8 hours",
+    "more than 8": "more than 8 hours",
+    ">8": "more than 8 hours",
+    "8+ hours": "more than 8 hours",
+    "others": "others",
+    "other": "others",
+}
+
+_DIETARY_NORMALISE = {
+    "healthy": "Healthy",
+    "moderate": "Moderate",
+    "unhealthy": "Unhealthy",
+    "others": "Others",
+    "other": "Others",
+}
+
+
+def _normalise_headers(raw_headers: list[str]) -> dict[str, str]:
+    """Return mapping: original_header → canonical_field_name (or original if unknown)."""
+    mapping = {}
+    for h in raw_headers:
+        key = h.strip().lower()
+        mapping[h] = _COL_ALIASES.get(key, h)
+    return mapping
+
+
+def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
+    """
+    Parse one CSV row dict (canonical keys) into a clean data dict.
+    Returns (data_dict, error_message).  On failure returns (None, message).
+    """
+    data: dict = {}
+
+    # ── numeric casts ──────────────────────────────────────────────────────
+    try:
+        data["Age"] = float(row.get("Age", ""))
+    except (ValueError, TypeError):
+        return None, f"Row {row_num}: invalid Age '{row.get('Age', '')}'"
+
+    try:
+        data["CGPA"] = float(row.get("CGPA", ""))
+    except (ValueError, TypeError):
+        return None, f"Row {row_num}: invalid CGPA '{row.get('CGPA', '')}'"
+
+    for int_field in ["Academic Pressure", "Work Pressure", "Study Satisfaction",
+                      "Job Satisfaction"]:
+        raw = row.get(int_field, "0") or "0"
+        try:
+            data[int_field] = int(float(raw))
+        except (ValueError, TypeError):
+            data[int_field] = 0
+
+    try:
+        data["Work/Study Hours"] = float(row.get("Work/Study Hours", "0") or "0")
+    except (ValueError, TypeError):
+        data["Work/Study Hours"] = 0.0
+
+    # Financial Stress kept as string (matches model field)
+    data["Financial Stress"] = str(row.get("Financial Stress", "0") or "0").strip()
+
+    # ── string / categorical ───────────────────────────────────────────────
+    data["Gender"] = str(row.get("Gender", "")).strip().title() or "Other"
+
+    sleep_raw = str(row.get("Sleep Duration", "")).strip().lower()
+    data["Sleep Duration"] = _SLEEP_NORMALISE.get(sleep_raw, "others")
+
+    diet_raw = str(row.get("Dietary Habits", "")).strip().lower()
+    data["Dietary Habits"] = _DIETARY_NORMALISE.get(diet_raw, "Others")
+
+    suicidal_raw = str(row.get("Have you ever had suicidal thoughts ?", "No")).strip().lower()
+    data["Have you ever had suicidal thoughts ?"] = "Yes" if suicidal_raw == "yes" else "No"
+
+    family_raw = str(row.get("Family History of Mental Illness", "No")).strip().lower()
+    data["Family History of Mental Illness"] = "Yes" if family_raw == "yes" else "No"
+
+    # ── student identity ───────────────────────────────────────────────────
+    data["name"]  = str(row.get("name", "")).strip() or f"Anonymous #{row_num}"
+    data["email"] = str(row.get("email", "")).strip() or f"unknown_{row_num}@import.csv"
+
+    return data, None
+
+
 # ── Auth views ────────────────────────────────────────────────────────────────
 
 def login_page(request):
@@ -185,7 +345,6 @@ def admin_dashboard(request):
         "surveys":         surveys,
         "total_responses": SurveyResponse.objects.count(),
         "total_high_risk": PredictionResult.objects.filter(risk_level="High").count(),
-        
     }
     return render(request, "admin_dashboard.html", context)
 
@@ -236,6 +395,144 @@ def survey_details(request, survey_id):
 
 @login_required
 @user_passes_test(_is_admin)
+def import_csv(request, survey_id):
+    """
+    GET  → render the import page with column guide
+    POST → process the uploaded CSV file
+    """
+    survey = get_object_or_404(Survey, id=survey_id)
+
+    if request.method == "GET":
+        return render(request, "import_csv.html", {"survey": survey})
+
+    # ── POST: handle upload ────────────────────────────────────────────────
+    csv_file = request.FILES.get("csv_file")
+    if not csv_file:
+        messages.error(request, "No file selected. Please choose a CSV file.")
+        return render(request, "import_csv.html", {"survey": survey})
+
+    if not csv_file.name.endswith(".csv"):
+        messages.error(request, "Invalid file type. Please upload a .csv file.")
+        return render(request, "import_csv.html", {"survey": survey})
+
+    # Decode file
+    try:
+        decoded = csv_file.read().decode("utf-8-sig")  # utf-8-sig strips BOM
+    except UnicodeDecodeError:
+        try:
+            csv_file.seek(0)
+            decoded = csv_file.read().decode("latin-1")
+        except Exception:
+            messages.error(request, "Could not decode the CSV file. Ensure it is UTF-8 or Latin-1 encoded.")
+            return render(request, "import_csv.html", {"survey": survey})
+
+    reader = csv.DictReader(io.StringIO(decoded))
+
+    if not reader.fieldnames:
+        messages.error(request, "CSV file appears to be empty or has no headers.")
+        return render(request, "import_csv.html", {"survey": survey})
+
+    # Normalise headers
+    header_map = _normalise_headers(list(reader.fieldnames))
+
+    imported   = 0
+    skipped    = 0
+    errors     = []
+    prediction_failures = 0
+
+    for row_num, raw_row in enumerate(reader, start=2):  # row 1 = header
+        # Re-key using canonical names
+        row = {header_map.get(k, k): v for k, v in raw_row.items()}
+
+        data, err = _parse_csv_row(row, row_num)
+        if err:
+            errors.append(err)
+            skipped += 1
+            continue
+
+        # Create DB records
+        try:
+            student = Student.objects.create(
+                name  = data["name"],
+                email = data["email"],
+            )
+            response = SurveyResponse.objects.create(
+                survey             = survey,
+                student            = student,
+                age                = data["Age"],
+                gender             = data["Gender"],
+                cgpa               = data["CGPA"],
+                academic_pressure  = data["Academic Pressure"],
+                work_pressure      = data.get("Work Pressure", 0),
+                study_satisfaction = data["Study Satisfaction"],
+                job_satisfaction   = data.get("Job Satisfaction", 0),
+                work_study_hours   = data["Work/Study Hours"],
+                sleep_duration     = data["Sleep Duration"],
+                dietary_habits     = data["Dietary Habits"],
+                suicidal_thoughts  = data["Have you ever had suicidal thoughts ?"],
+                family_history     = data["Family History of Mental Illness"],
+                financial_stress   = data["Financial Stress"],
+            )
+        except Exception as exc:
+            errors.append(f"Row {row_num}: database error — {exc}")
+            skipped += 1
+            continue
+
+        # Run ML prediction
+        ml_input = {
+            "Age":             data["Age"],
+            "Gender":          data["Gender"],
+            "CGPA":            data["CGPA"],
+            "Academic Pressure":  data["Academic Pressure"],
+            "Work Pressure":      data.get("Work Pressure", 0),
+            "Study Satisfaction": data["Study Satisfaction"],
+            "Job Satisfaction":   data.get("Job Satisfaction", 0),
+            "Work/Study Hours":   data["Work/Study Hours"],
+            "Sleep Duration":     data["Sleep Duration"],
+            "Dietary Habits":     data["Dietary Habits"],
+            "Have you ever had suicidal thoughts ?": data["Have you ever had suicidal thoughts ?"],
+            "Family History of Mental Illness":      data["Family History of Mental Illness"],
+            "Financial Stress": data["Financial Stress"],
+        }
+
+        try:
+            result = predict_student(ml_input)
+            PredictionResult.objects.create(
+                response   = response,
+                risk_score = result["risk_score"],
+                prediction = result["prediction"],
+                risk_level = result["risk_level"],
+            )
+        except Exception as exc:
+            logger.warning("Prediction failed for imported row %d: %s", row_num, exc)
+            prediction_failures += 1
+            # Response is saved; prediction just won't appear
+
+        imported += 1
+
+    # ── Summary message ────────────────────────────────────────────────────
+    if imported:
+        msg = f"Successfully imported {imported} response{'s' if imported != 1 else ''}."
+        if prediction_failures:
+            msg += f" ({prediction_failures} predictions could not be run — model may not be loaded.)"
+        messages.success(request, msg)
+    if skipped:
+        messages.warning(request, f"Skipped {skipped} row{'s' if skipped != 1 else ''} due to errors.")
+    if errors:
+        # Show first 5 errors to avoid flooding
+        for e in errors[:5]:
+            messages.error(request, e)
+        if len(errors) > 5:
+            messages.error(request, f"… and {len(errors) - 5} more errors.")
+
+    if not imported and not skipped:
+        messages.warning(request, "The CSV file had no data rows.")
+
+    return redirect("survey_details", survey_id=survey_id)
+
+
+@login_required
+@user_passes_test(_is_admin)
 def student_detail(request, id):
     """Detail view for a single survey response — staff only."""
     response   = get_object_or_404(
@@ -258,8 +555,6 @@ def survey_analytics(request, survey_id):
         response__in=responses
     ).select_related("response")
 
-
-
     level_counts = {
         "Low":      predictions.filter(risk_level="Low").count(),
         "Moderate": predictions.filter(risk_level="Moderate").count(),
@@ -269,7 +564,7 @@ def survey_analytics(request, survey_id):
     total     = predictions.count()
     high_risk = level_counts["High"]
     avg_score = predictions.aggregate(avg=Avg("risk_score"))["avg"] or 0.0
-    
+
     high_pct      = round(high_risk / total * 100, 1) if total else 0
     avg_score_pct = round(avg_score * 100, 1)
 

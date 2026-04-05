@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}Import CSV — {{ survey.title }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width:760px;">
+
+  <!-- header -->
+  <div class="flex-between" style="margin-bottom:1.75rem;">
+    <div>
+      <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.3rem;">
+        CSV Import
+      </div>
+      <h1 style="margin-bottom:.15rem;">{{ survey.title }}</h1>
+      <p style="margin:0;font-size:.85rem;">
+        Upload a CSV file to bulk-import student responses. Each row will be processed through the risk model automatically.
+      </p>
+    </div>
+    <a href="{% url 'survey_details' survey.id %}" class="btn btn-secondary btn-sm" style="white-space:nowrap;">
+      ← Back to Responses
+    </a>
+  </div>
+
+  <!-- upload card -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h2 style="margin-bottom:1.25rem;">Upload File</h2>
+
+    <form method="post" enctype="multipart/form-data" id="importForm">
+      {% csrf_token %}
+
+      <!-- drop zone -->
+      <div id="dropZone" style="
+        border:2px dashed var(--border);
+        border-radius:var(--radius);
+        padding:2.5rem 2rem;
+        text-align:center;
+        cursor:pointer;
+        transition:border-color .2s, background .2s;
+        margin-bottom:1.25rem;
+        position:relative;
+      "
+      onclick="document.getElementById('csvInput').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--accent2)';this.style.background='rgba(244,162,97,.05)'"
+      ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
+      ondrop="handleDrop(event)">
+
+        <div id="dropIcon" style="margin-bottom:.75rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+               fill="none" stroke="var(--muted)" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+
+        <div id="dropText" style="color:var(--muted);font-size:.9rem;">
+          <span style="color:var(--accent2);font-weight:600;">Click to browse</span>
+          &nbsp;or drag &amp; drop your CSV here
+        </div>
+        <div id="fileName" style="margin-top:.5rem;font-size:.8rem;color:var(--muted);display:none;"></div>
+
+        <input type="file" name="csv_file" id="csvInput" accept=".csv"
+               style="display:none;" onchange="handleFileSelect(this)">
+      </div>
+
+      <!-- submit -->
+      <div style="display:flex;gap:.75rem;align-items:center;">
+        <button type="submit" class="btn btn-primary" id="submitBtn" disabled
+                style="display:inline-flex;align-items:center;gap:.5rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Import Responses
+        </button>
+        <span id="processingMsg" style="display:none;font-size:.82rem;color:var(--muted);">
+          Processing… this may take a moment for large files.
+        </span>
+      </div>
+    </form>
+  </div>
+
+  <!-- column reference -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h2 style="margin-bottom:.25rem;">Column Reference</h2>
+    <p style="margin-bottom:1rem;font-size:.85rem;">
+      Column headers are matched case-insensitively. Common aliases are supported.
+      Columns marked <span style="color:var(--negative);font-weight:600;">required</span> must be present; others default to 0 / "No".
+    </p>
+
+    <div style="overflow-x:auto;">
+      <table style="font-size:.8rem;">
+        <thead>
+          <tr>
+            <th>Canonical Header</th>
+            <th>Also Accepted As</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code></td>
+            <td><code>full name</code>, <code>full_name</code></td>
+            <td>Text</td>
+            <td style="color:var(--muted);">Optional</td>
+            <td>Defaults to "Anonymous #N"</td>
+          </tr>
+          <tr>
+            <td><code>email</code></td>
+            <td><code>email address</code></td>
+            <td>Text</td>
+            <td style="color:var(--muted);">Optional</td>
+            <td>Defaults to placeholder</td>
+          </tr>
+          <tr>
+            <td><code>Age</code></td>
+            <td>—</td>
+            <td>Number</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>e.g. 21</td>
+          </tr>
+          <tr>
+            <td><code>Gender</code></td>
+            <td><code>sex</code></td>
+            <td>Text</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>Male / Female / Other</td>
+          </tr>
+          <tr>
+            <td><code>CGPA</code></td>
+            <td><code>gpa</code></td>
+            <td>Number</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>0 – 10</td>
+          </tr>
+          <tr>
+            <td><code>Academic Pressure</code></td>
+            <td><code>academic_pressure</code></td>
+            <td>Integer</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>1 – 5</td>
+          </tr>
+          <tr>
+            <td><code>Study Satisfaction</code></td>
+            <td><code>study_satisfaction</code></td>
+            <td>Integer</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>1 – 5</td>
+          </tr>
+          <tr>
+            <td><code>Work/Study Hours</code></td>
+            <td><code>study hours</code>, <code>work_study_hours</code></td>
+            <td>Number</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>Hours per day</td>
+          </tr>
+          <tr>
+            <td><code>Sleep Duration</code></td>
+            <td><code>sleep</code>, <code>sleep_duration</code></td>
+            <td>Text</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>See values below ↓</td>
+          </tr>
+          <tr>
+            <td><code>Dietary Habits</code></td>
+            <td><code>diet</code>, <code>dietary_habits</code></td>
+            <td>Text</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>Healthy / Moderate / Unhealthy / Others</td>
+          </tr>
+          <tr>
+            <td><code>Have you ever had suicidal thoughts ?</code></td>
+            <td><code>suicidal thoughts</code>, <code>suicidal_thoughts</code></td>
+            <td>Text</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>Yes / No</td>
+          </tr>
+          <tr>
+            <td><code>Family History of Mental Illness</code></td>
+            <td><code>family history</code>, <code>family_history</code></td>
+            <td>Text</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>Yes / No</td>
+          </tr>
+          <tr>
+            <td><code>Financial Stress</code></td>
+            <td><code>financial_stress</code></td>
+            <td>Integer</td>
+            <td style="color:var(--negative);font-weight:600;">Required</td>
+            <td>1 – 5</td>
+          </tr>
+          <tr>
+            <td><code>Work Pressure</code></td>
+            <td><code>work_pressure</code></td>
+            <td>Integer</td>
+            <td style="color:var(--muted);">Optional</td>
+            <td>0 – 5, defaults to 0</td>
+          </tr>
+          <tr>
+            <td><code>Job Satisfaction</code></td>
+            <td><code>job_satisfaction</code></td>
+            <td>Integer</td>
+            <td style="color:var(--muted);">Optional</td>
+            <td>0 – 5, defaults to 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sleep Duration values -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h2 style="margin-bottom:.5rem;">Sleep Duration — Accepted Values</h2>
+    <p style="font-size:.82rem;margin-bottom:.75rem;">Any of the following (case-insensitive) will be recognised:</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      {% for val in sleep_values %}
+      <code style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.2rem .5rem;font-size:.78rem;">{{ val }}</code>
+      {% empty %}
+      {% for val in "less than 5 hours,less than 5,<5,5-6 hours,5-6,7-8 hours,7-8,more than 8 hours,more than 8,>8,8+ hours,others,other"|split:"," %}
+      <code style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.2rem .5rem;font-size:.78rem;">{{ val }}</code>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- sample CSV -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:.75rem;">
+      <h2 style="margin:0;">Sample CSV</h2>
+      <button onclick="downloadSample()" class="btn btn-secondary btn-sm">
+        ↓ Download Sample
+      </button>
+    </div>
+    <p style="font-size:.82rem;margin-bottom:.75rem;">
+      Copy this header row into your spreadsheet to get started:
+    </p>
+    <pre style="
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:.75rem 1rem;
+      font-size:.72rem;overflow-x:auto;white-space:pre;
+      color:var(--muted);line-height:1.6;
+    ">name,email,Age,Gender,CGPA,Academic Pressure,Study Satisfaction,Work/Study Hours,Sleep Duration,Dietary Habits,Have you ever had suicidal thoughts ?,Family History of Mental Illness,Financial Stress,Work Pressure,Job Satisfaction
+Alice Johnson,alice@example.com,21,Female,8.5,3,4,6,7-8 hours,Healthy,No,No,2,0,0
+Bob Smith,bob@example.com,23,Male,6.2,5,2,10,less than 5 hours,Unhealthy,Yes,Yes,4,0,0
+Carol Lee,carol@example.com,20,Female,7.8,2,5,5,7-8 hours,Moderate,No,No,1,0,0</pre>
+  </div>
+
+</div>
+
+<script>
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) {
+    showFile(input.files[0]);
+  }
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  const dz = document.getElementById('dropZone');
+  dz.style.borderColor = 'var(--border)';
+  dz.style.background  = '';
+
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.csv')) {
+    alert('Please drop a .csv file.');
+    return;
+  }
+  // Assign to input
+  const dt   = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('csvInput').files = dt.files;
+  showFile(file);
+}
+
+function showFile(file) {
+  const nameEl   = document.getElementById('fileName');
+  const dropText = document.getElementById('dropText');
+  const submitBtn = document.getElementById('submitBtn');
+
+  nameEl.textContent = `✓  ${file.name}  (${(file.size / 1024).toFixed(1)} KB)`;
+  nameEl.style.color = 'var(--accent2)';
+  nameEl.style.display = 'block';
+  dropText.innerHTML = '<span style="color:var(--text);font-weight:500;">File selected</span> — click to change';
+  submitBtn.disabled = false;
+  document.getElementById('dropZone').style.borderColor = 'var(--accent2)';
+}
+
+document.getElementById('importForm').addEventListener('submit', function() {
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Importing…';
+  document.getElementById('processingMsg').style.display = 'inline';
+});
+
+const SAMPLE_CSV = `name,email,Age,Gender,CGPA,Academic Pressure,Study Satisfaction,Work/Study Hours,Sleep Duration,Dietary Habits,Have you ever had suicidal thoughts ?,Family History of Mental Illness,Financial Stress,Work Pressure,Job Satisfaction\r\nAlice Johnson,alice@example.com,21,Female,8.5,3,4,6,7-8 hours,Healthy,No,No,2,0,0\r\nBob Smith,bob@example.com,23,Male,6.2,5,2,10,less than 5 hours,Unhealthy,Yes,Yes,4,0,0\r\nCarol Lee,carol@example.com,20,Female,7.8,2,5,5,7-8 hours,Moderate,No,No,1,0,0\r\n`;
+
+function downloadSample() {
+  const blob = new Blob([SAMPLE_CSV], { type: 'text/csv' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'sample_import.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+{% endblock %}

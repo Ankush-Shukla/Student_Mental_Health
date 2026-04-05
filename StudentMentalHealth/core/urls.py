@@ -21,6 +21,7 @@ urlpatterns = [
     path("admin-dashboard/<str:survey_id>/details/",           views.survey_details,  name="survey_details"),
     path("admin-dashboard/<str:survey_id>/analytics/",         views.survey_analytics, name="survey_analytics"),
     path("admin-dashboard/<str:survey_id>/toggle/",            views.toggle_survey,   name="toggle_survey"),
+    path("admin-dashboard/<str:survey_id>/import/",            views.import_csv,      name="import_csv"),
 
     # Student detail — staff only (enforced in view)
     path("student/<int:id>/", views.student_detail, name="student_detail"),
