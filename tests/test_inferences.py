@@ -25,7 +25,7 @@ from StudentMentalHealth.core.inference import predict_student
 
 student = {
     "id": 1,
-    "Age": 29,
+    "Age": 20,
     "Gender": "Male",
     "CGPA": 7,
     "Academic Pressure": 3,

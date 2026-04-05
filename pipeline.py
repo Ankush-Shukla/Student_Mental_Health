@@ -201,10 +201,10 @@ def run(data_path, output_dir, min_support, min_confidence,
 
     lr = LogisticRegression(max_iter=1000)
     from sklearn.calibration import CalibratedClassifierCV
-    
-    rf_base = RandomForestClassifier(n_estimators=100, random_state=42)
+
+    rf_base = RandomForestClassifier(n_estimators=70, random_state=42)
     rf_base.fit(X_train, y_train)
-    
+
     # cv=None means use prefit estimator — pass the fitted model directly
     rf = CalibratedClassifierCV(rf_base, method="isotonic")
     rf.fit(X_test, y_test)   # calibrate on held-out set  # calibrate on held-out set

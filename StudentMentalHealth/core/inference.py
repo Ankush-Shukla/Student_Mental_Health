@@ -54,7 +54,7 @@ from preprocessing import engineer_features, BIN_COLS      # noqa: E402
 # ---------------------------------------------------------------------------
 # Artefact loading (cached for the lifetime of the process)
 # ---------------------------------------------------------------------------
-
+import os
 @lru_cache(maxsize=1)
 def _load_artefacts() -> tuple:
     required = {
@@ -64,7 +64,7 @@ def _load_artefacts() -> tuple:
         "dep_rules": _OUTPUTS_DIR / "depression_rules.csv",
     }
 
-    HF_REPO = os.environ.get("HF_REPO", "YOUR_USERNAME/student-mental-health-model")
+    HF_REPO = os.environ.get("HF_REPO", "DecodedWolf/student_mental_health")
     HF_FILES = ["rf.pkl", "bin_encoders.pkl"]  # only large files
 
     _OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
