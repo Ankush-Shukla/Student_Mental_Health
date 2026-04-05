@@ -9,3 +9,9 @@ wheels/
 # Virtual environments
 .venv
 StudentMentalHealth/outputs/rf.pkl
+outputs/rf.pkl
+outputs/lr.pkl
+outputs/bin_encoders.pkl
+outputs/shap_summary.png
+outputs/*.png
+StudentMentalHealth/outputs/rf.pkl
