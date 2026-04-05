@@ -169,14 +169,11 @@ _DIETARY_NORMALISE: dict[str, str] = {
 
 
 def _normalise_headers(raw_headers: list[str]) -> dict[str, str]:
-    """
-    Return {original_header: canonical_field_name}.
-    Unknown headers pass through unchanged (they will just be unused).
-    """
     mapping: dict[str, str] = {}
     for h in raw_headers:
-        key = h.strip().lower()
-        mapping[h] = _COL_ALIASES.get(key, h)
+        stripped = h.strip()          # stripped version used as key
+        key = stripped.lower()
+        mapping[stripped] = _COL_ALIASES.get(key, stripped)
     return mapping
 
 
@@ -488,12 +485,14 @@ def import_csv(request, survey_id):
     prediction_failures = 0
 
     for row_num, raw_row in enumerate(reader, start=2):
-        # Re-key with canonical names; drop __SKIP__ columns (e.g. Timestamp)
+        # Normalize raw_row keys to strip whitespace, then re-key with canonical names
+        normalized_raw = {k.strip(): v for k, v in raw_row.items()}
+        
         row = {
             canonical: v
             for orig, canonical in header_map.items()
             if canonical != "__SKIP__"
-            and (v := raw_row.get(orig, "")) is not None
+            and (v := normalized_raw.get(orig.strip(), "")) is not None
         }
 
         data, err = _parse_csv_row(row, row_num)
