@@ -24,4 +24,5 @@ urlpatterns = [
 
     # Student detail — staff only (enforced in view)
     path("student/<int:id>/", views.student_detail, name="student_detail"),
+    path("ping/",        views.health_check,  name="health_check"),
 ]

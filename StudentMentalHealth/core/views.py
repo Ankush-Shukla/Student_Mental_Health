@@ -22,6 +22,8 @@ from .inference import predict_student
 logger = logging.getLogger(__name__)
 
 
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _random_id() -> str:
@@ -31,6 +33,8 @@ def _random_id() -> str:
 def _is_admin(user) -> bool:
     return user.is_authenticated and user.is_staff
 
+def health_check():
+    return 'OK' , 200
 
 # ── Auth views ────────────────────────────────────────────────────────────────
 
