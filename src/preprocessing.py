@@ -130,16 +130,6 @@ BIN_COLS: list[str] = [
 def build_model_matrix(
     df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.Series, dict[str, LabelEncoder]]:
-    """
-    Returns
-    -------
-    X         : numeric feature DataFrame
-    y         : binary label Series
-    encoders  : {col_name -> fitted LabelEncoder}  — persist these for inference
-
-    FIX: one LabelEncoder per bin column (the old code reused a single
-    instance and discarded all but the last column's encoding).
-    """
     df = engineer_features(df)
 
     base_features = [
@@ -153,7 +143,9 @@ def build_model_matrix(
 
     for col in BIN_COLS:
         le = LabelEncoder()
-        df[col + "_Enc"] = le.fit_transform(df[col].astype(str))
+        # Convert Categorical → object → str, THEN replace NaN sentinel
+        df[col] = df[col].astype(object).fillna("Unknown").astype(str)
+        df[col + "_Enc"] = le.fit_transform(df[col])
         encoders[col] = le
         enc_features.append(col + "_Enc")
 
@@ -164,7 +156,6 @@ def build_model_matrix(
     y = df["Depression"].astype(int)
 
     return X, y, encoders
-
 
 def build_transactions(df: pd.DataFrame) -> pd.DataFrame:
     df = engineer_features(df)

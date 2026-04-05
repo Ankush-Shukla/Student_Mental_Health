@@ -188,19 +188,32 @@ def run(data_path, output_dir, min_support, min_confidence,
                                         recall_score, f1_score, roc_auc_score)
     from sklearn.model_selection import train_test_split
 
+        # Ensure X keeps column names through the split
     X_model = X_enriched.copy()
     y_model = y.copy()
-    _log(f"Training on enriched features: {X_model.shape}")
 
     X_train, X_test, y_train, y_test = train_test_split(
         X_model, y_model, test_size=0.2, random_state=42, stratify=y_model
     )
 
+    # Explicitly preserve column names
+    feature_names = list(X_train.columns)
+
     lr = LogisticRegression(max_iter=1000)
-    rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    from sklearn.calibration import CalibratedClassifierCV
+    
+    rf_base = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf_base.fit(X_train, y_train)
+    
+    # cv=None means use prefit estimator — pass the fitted model directly
+    rf = CalibratedClassifierCV(rf_base, method="isotonic")
+    rf.fit(X_test, y_test)   # calibrate on held-out set  # calibrate on held-out set
     lr.fit(X_train, y_train)
-    rf.fit(X_train, y_train)
-    _log("Models trained.")
+    
+
+    # Verify feature names were stored
+    assert hasattr(rf, 'feature_names_in_'), "RF trained without feature names!"
+    print("RF feature names stored:", list(rf.feature_names_in_)[:5], "...")
 
     def _evaluate(model, Xt, yt):
         prob = model.predict_proba(Xt)[:, 1]

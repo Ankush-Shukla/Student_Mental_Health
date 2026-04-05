@@ -58,7 +58,7 @@ from preprocessing import engineer_features, BIN_COLS      # noqa: E402
 @lru_cache(maxsize=1)
 def _load_artefacts() -> tuple:
     required = {
-        "model":     _OUTPUTS_DIR / "rf.pkl",
+        "model":     _OUTPUTS_DIR / "lr.pkl",
         "template":  _OUTPUTS_DIR / "feature_template.csv",
         "encoders":  _OUTPUTS_DIR / "bin_encoders.pkl",
         "dep_rules": _OUTPUTS_DIR / "depression_rules.csv",
@@ -124,14 +124,11 @@ def _clean_single(student_dict: dict) -> pd.DataFrame:
 
 
 def _build_feature_row(df_eng: pd.DataFrame, encoders: dict) -> pd.DataFrame:
-    """Build the numeric feature row that matches the training feature order."""
     row: dict = {}
 
-    # Base numeric features
     for col in _BASE_FEATURES:
         row[col] = float(df_eng[col].iloc[0]) if col in df_eng.columns else 0.0
 
-    # Encoded bin features — one encoder per column
     enc_features = []
     for col in BIN_COLS:
         enc_col = col + "_Enc"
@@ -139,11 +136,12 @@ def _build_feature_row(df_eng: pd.DataFrame, encoders: dict) -> pd.DataFrame:
         if col in encoders and col in df_eng.columns:
             le  = encoders[col]
             val = str(df_eng[col].iloc[0])
+            # FIX: match the sentinel used during training
+            val = "Unknown" if val == "nan" else val
             row[enc_col] = int(le.transform([val])[0]) if val in le.classes_ else 0
         else:
             row[enc_col] = 0
 
-    # Gender one-hot
     row["Gender_Male"] = int(
         df_eng["Gender"].iloc[0].lower() == "male"
         if "Gender" in df_eng.columns else 0
@@ -152,9 +150,7 @@ def _build_feature_row(df_eng: pd.DataFrame, encoders: dict) -> pd.DataFrame:
     feature_cols = _BASE_FEATURES + enc_features + ["Gender_Male"]
     return pd.DataFrame([row])[feature_cols]
 
-
 def _build_item_set(df_eng: pd.DataFrame) -> set[str]:
-    """Reconstruct the Apriori transaction item set for rule matching."""
     items: set[str] = set()
     r = df_eng.iloc[0]
 
@@ -163,12 +159,15 @@ def _build_item_set(df_eng: pd.DataFrame) -> set[str]:
 
     for col in BIN_COLS:
         if col in df_eng.columns:
-            items.add(str(r[col]))
+            val = str(r[col])
+            if val != "nan":          # FIX: don't add nan to item set
+                items.add(val)
 
     items.add("Suicidal_Yes"      if r.get("Suicidal_Thoughts", 0) else "Suicidal_No")
     items.add("FamilyHistory_Yes" if r.get("Family_History",     0) else "FamilyHistory_No")
 
     return items
+    
 
 
 def _compute_rule_features(items: set[str], dep_rules: pd.DataFrame) -> dict[str, int]:
@@ -206,7 +205,20 @@ def predict_student(student_dict: dict) -> dict:
     X          = _build_feature_row(df_eng, encoders)
     items      = _build_item_set(df_eng)
     rule_feats = _compute_rule_features(items, dep_rules)
+# --- DEBUG: print what the model actually sees ---
+    print("=== BIN VALUES ===")
+    from preprocessing import BIN_COLS
+    for col in BIN_COLS:
+        val = str(df_eng[col].iloc[0])
+        enc = encoders.get(col)
+        in_classes = val in enc.classes_ if enc else False
+        print(f"  {col}: '{val}' | known={in_classes} | classes={list(enc.classes_) if enc else '?'}")
 
+    print("\n=== ITEM SET ===", items)
+    print("\n=== RULE HITS ===", {k: v for k, v in rule_feats.items() if v})
+    print("\n=== FEATURE ROW ===")
+    print(X.to_string())
+    # --- END DEBUG ---
     # Align to training feature template
     X_aligned = pd.DataFrame(0, index=[0], columns=template.columns)
     for col in X.columns:
@@ -217,7 +229,9 @@ def predict_student(student_dict: dict) -> dict:
             X_aligned[col] = val
 
     X_aligned = X_aligned.fillna(0).astype(float)
-
+    print("\n=== X_ALIGNED (full template) ===")
+    print(X_aligned.to_string())
+    print("\nNon-zero columns:", X_aligned.columns[X_aligned.iloc[0] != 0].tolist())
     prob = float(model.predict_proba(X_aligned)[0][1])
     pred = int(prob >= 0.5)
 
