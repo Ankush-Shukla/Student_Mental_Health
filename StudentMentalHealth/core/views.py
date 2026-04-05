@@ -39,106 +39,141 @@ def _is_admin(user) -> bool:
 def health_check(request):
     url = 'https://student-mental-health-06xp.onrender.com/'
     x = requests.get(url)
-    if(x.ok):
+    if x.ok:
         return 200
     else:
         return 404
 
 
-# ── CSV column aliases ────────────────────────────────────────────────────────
-# Maps various header names a CSV might use → our canonical field name
+# ── Google Forms / CSV column mapping ────────────────────────────────────────
+#
+# Google Forms exports the full question text as the column header.
+# We match headers by stripping and lowercasing, then map to our
+# canonical internal field names.
+#
+# The survey_form.html uses these exact field names in the <select>/<input>
+# name attributes, so these are the strings Google Forms will echo back.
+
 _COL_ALIASES: dict[str, str] = {
-    # Age
+    # ── Google Forms timestamp (always present, always ignored) ──────────
+    "timestamp": "__SKIP__",
+
+    # ── Student identity ─────────────────────────────────────────────────
+    "full name":    "name",
+    "name":         "name",
+    "full_name":    "name",
+    "email":        "email",
+    "email address":"email",
+
+    # ── Age ──────────────────────────────────────────────────────────────
     "age": "Age",
-    # Gender
+
+    # ── Gender ───────────────────────────────────────────────────────────
     "gender": "Gender",
-    "sex": "Gender",
-    # CGPA
-    "cgpa": "CGPA",
-    "gpa": "CGPA",
-    # Academic Pressure
-    "academic pressure": "Academic Pressure",
-    "academic_pressure": "Academic Pressure",
-    # Work Pressure
-    "work pressure": "Work Pressure",
-    "work_pressure": "Work Pressure",
-    # Study Satisfaction
-    "study satisfaction": "Study Satisfaction",
-    "study_satisfaction": "Study Satisfaction",
-    # Job Satisfaction
-    "job satisfaction": "Job Satisfaction",
-    "job_satisfaction": "Job Satisfaction",
-    # Work/Study Hours
-    "work/study hours": "Work/Study Hours",
-    "work_study_hours": "Work/Study Hours",
-    "study hours": "Work/Study Hours",
-    "study_hours": "Work/Study Hours",
-    # Sleep Duration
-    "sleep duration": "Sleep Duration",
-    "sleep_duration": "Sleep Duration",
-    "sleep": "Sleep Duration",
-    # Dietary Habits
+    "sex":    "Gender",
+
+    # ── CGPA ─────────────────────────────────────────────────────────────
+    "cgpa (0 – 10)": "CGPA",
+    "cgpa":          "CGPA",
+    "gpa":           "CGPA",
+
+    # ── Academic Pressure ─────────────────────────────────────────────────
+    # Google Forms question: "Academic pressure (1 = none, 5 = extreme)"
+    "academic pressure (1 = none, 5 = extreme)": "Academic Pressure",
+    "academic pressure":                          "Academic Pressure",
+    "academic_pressure":                          "Academic Pressure",
+
+    # ── Study Satisfaction ────────────────────────────────────────────────
+    # Google Forms question: "Study satisfaction (1 = very low, 5 = very high)"
+    "study satisfaction (1 = very low, 5 = very high)": "Study Satisfaction",
+    "study satisfaction":                                "Study Satisfaction",
+    "study_satisfaction":                                "Study Satisfaction",
+
+    # ── Work/Study Hours ──────────────────────────────────────────────────
+    # Google Forms question: "Work / study hours per day"
+    "work / study hours per day": "Work/Study Hours",
+    "work/study hours":           "Work/Study Hours",
+    "work_study_hours":           "Work/Study Hours",
+    "study hours":                "Work/Study Hours",
+    "study_hours":                "Work/Study Hours",
+
+    # ── Sleep Duration ────────────────────────────────────────────────────
+    # Google Forms question: "Typical sleep duration"
+    "typical sleep duration": "Sleep Duration",
+    "sleep duration":         "Sleep Duration",
+    "sleep_duration":         "Sleep Duration",
+    "sleep":                  "Sleep Duration",
+
+    # ── Dietary Habits ────────────────────────────────────────────────────
+    # Google Forms question: "Dietary habits"
     "dietary habits": "Dietary Habits",
     "dietary_habits": "Dietary Habits",
-    "diet": "Dietary Habits",
-    # Suicidal Thoughts
+    "diet":           "Dietary Habits",
+
+    # ── Work Pressure ─────────────────────────────────────────────────────
+    # Google Forms question: "Work pressure (0 = none, 5 = extreme)"
+    "work pressure (0 = none, 5 = extreme)": "Work Pressure",
+    "work pressure":                          "Work Pressure",
+    "work_pressure":                          "Work Pressure",
+
+    # ── Financial Stress ──────────────────────────────────────────────────
+    # Google Forms question: "Financial stress (1 = none, 5 = severe)"
+    "financial stress (1 = none, 5 = severe)": "Financial Stress",
+    "financial stress":                         "Financial Stress",
+    "financial_stress":                         "Financial Stress",
+
+    # ── Suicidal Thoughts ─────────────────────────────────────────────────
+    # Google Forms question: "Have you ever had suicidal thoughts ?"
     "have you ever had suicidal thoughts ?": "Have you ever had suicidal thoughts ?",
-    "have you ever had suicidal thoughts": "Have you ever had suicidal thoughts ?",
-    "suicidal thoughts": "Have you ever had suicidal thoughts ?",
-    "suicidal_thoughts": "Have you ever had suicidal thoughts ?",
-    # Family History
-    "family history of mental illness": "Family History of Mental Illness",
-    "family_history_of_mental_illness": "Family History of Mental Illness",
-    "family history": "Family History of Mental Illness",
-    "family_history": "Family History of Mental Illness",
-    # Financial Stress
-    "financial stress": "Financial Stress",
-    "financial_stress": "Financial Stress",
-    # Depression (optional label column — not used for inference but stored)
-    "depression": "Depression",
-    # Student info
-    "name": "name",
-    "full name": "name",
-    "full_name": "name",
-    "email": "email",
-    "email address": "email",
+    "have you ever had suicidal thoughts":   "Have you ever had suicidal thoughts ?",
+    "suicidal thoughts":                     "Have you ever had suicidal thoughts ?",
+    "suicidal_thoughts":                     "Have you ever had suicidal thoughts ?",
+
+    # ── Family History ────────────────────────────────────────────────────
+    # Google Forms question: "Family history of mental illness"
+    "family history of mental illness":  "Family History of Mental Illness",
+    "family_history_of_mental_illness":  "Family History of Mental Illness",
+    "family history":                    "Family History of Mental Illness",
+    "family_history":                    "Family History of Mental Illness",
 }
 
-_REQUIRED_FIELDS = [
-    "Age", "Gender", "CGPA", "Academic Pressure", "Study Satisfaction",
-    "Work/Study Hours", "Sleep Duration", "Dietary Habits",
-    "Have you ever had suicidal thoughts ?", "Family History of Mental Illness",
-    "Financial Stress",
-]
-
-_SLEEP_NORMALISE = {
+# Sleep Duration values that Google Forms dropdowns / free text might produce
+# mapped → our stored value
+_SLEEP_NORMALISE: dict[str, str] = {
     "less than 5 hours": "less than 5 hours",
-    "less than 5": "less than 5 hours",
-    "<5": "less than 5 hours",
-    "5-6 hours": "5-6 hours",
-    "5-6": "5-6 hours",
-    "7-8 hours": "7-8 hours",
-    "7-8": "7-8 hours",
+    "less than 5":       "less than 5 hours",
+    "<5":                "less than 5 hours",
+    "5-6 hours":         "5-6 hours",
+    "5 – 6 hours":       "5-6 hours",   # Google Forms renders en-dash
+    "5 - 6 hours":       "5-6 hours",
+    "5-6":               "5-6 hours",
+    "7-8 hours":         "7-8 hours",
+    "7 – 8 hours":       "7-8 hours",
+    "7 - 8 hours":       "7-8 hours",
+    "7-8":               "7-8 hours",
     "more than 8 hours": "more than 8 hours",
-    "more than 8": "more than 8 hours",
-    ">8": "more than 8 hours",
-    "8+ hours": "more than 8 hours",
-    "others": "others",
-    "other": "others",
+    "more than 8":       "more than 8 hours",
+    ">8":                "more than 8 hours",
+    "8+ hours":          "more than 8 hours",
+    "others":            "others",
+    "other":             "others",
 }
 
-_DIETARY_NORMALISE = {
-    "healthy": "Healthy",
-    "moderate": "Moderate",
+_DIETARY_NORMALISE: dict[str, str] = {
+    "healthy":   "Healthy",
+    "moderate":  "Moderate",
     "unhealthy": "Unhealthy",
-    "others": "Others",
-    "other": "Others",
+    "others":    "Others",
+    "other":     "Others",
 }
 
 
 def _normalise_headers(raw_headers: list[str]) -> dict[str, str]:
-    """Return mapping: original_header → canonical_field_name (or original if unknown)."""
-    mapping = {}
+    """
+    Return {original_header: canonical_field_name}.
+    Unknown headers pass through unchanged (they will just be unused).
+    """
+    mapping: dict[str, str] = {}
     for h in raw_headers:
         key = h.strip().lower()
         mapping[h] = _COL_ALIASES.get(key, h)
@@ -147,12 +182,12 @@ def _normalise_headers(raw_headers: list[str]) -> dict[str, str]:
 
 def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
     """
-    Parse one CSV row dict (canonical keys) into a clean data dict.
-    Returns (data_dict, error_message).  On failure returns (None, message).
+    Parse one row (already re-keyed with canonical names) into a clean dict.
+    Returns (data, None) on success, (None, error_string) on failure.
     """
     data: dict = {}
 
-    # ── numeric casts ──────────────────────────────────────────────────────
+    # ── numeric fields ────────────────────────────────────────────────────
     try:
         data["Age"] = float(row.get("Age", ""))
     except (ValueError, TypeError):
@@ -163,23 +198,27 @@ def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
     except (ValueError, TypeError):
         return None, f"Row {row_num}: invalid CGPA '{row.get('CGPA', '')}'"
 
-    for int_field in ["Academic Pressure", "Work Pressure", "Study Satisfaction",
-                      "Job Satisfaction"]:
-        raw = row.get(int_field, "0") or "0"
+    for int_field in ["Academic Pressure", "Work Pressure",
+                      "Study Satisfaction", "Job Satisfaction"]:
+        raw = str(row.get(int_field, "0") or "0").strip()
         try:
             data[int_field] = int(float(raw))
         except (ValueError, TypeError):
             data[int_field] = 0
 
     try:
-        data["Work/Study Hours"] = float(row.get("Work/Study Hours", "0") or "0")
+        data["Work/Study Hours"] = float(
+            str(row.get("Work/Study Hours", "0") or "0").strip()
+        )
     except (ValueError, TypeError):
         data["Work/Study Hours"] = 0.0
 
-    # Financial Stress kept as string (matches model field)
-    data["Financial Stress"] = str(row.get("Financial Stress", "0") or "0").strip()
+    # Financial Stress: stored as CharField, keep as string
+    data["Financial Stress"] = str(
+        row.get("Financial Stress", "0") or "0"
+    ).strip()
 
-    # ── string / categorical ───────────────────────────────────────────────
+    # ── categorical fields ────────────────────────────────────────────────
     data["Gender"] = str(row.get("Gender", "")).strip().title() or "Other"
 
     sleep_raw = str(row.get("Sleep Duration", "")).strip().lower()
@@ -188,15 +227,25 @@ def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
     diet_raw = str(row.get("Dietary Habits", "")).strip().lower()
     data["Dietary Habits"] = _DIETARY_NORMALISE.get(diet_raw, "Others")
 
-    suicidal_raw = str(row.get("Have you ever had suicidal thoughts ?", "No")).strip().lower()
-    data["Have you ever had suicidal thoughts ?"] = "Yes" if suicidal_raw == "yes" else "No"
+    suicidal_raw = str(
+        row.get("Have you ever had suicidal thoughts ?", "No")
+    ).strip().lower()
+    data["Have you ever had suicidal thoughts ?"] = (
+        "Yes" if suicidal_raw == "yes" else "No"
+    )
 
-    family_raw = str(row.get("Family History of Mental Illness", "No")).strip().lower()
-    data["Family History of Mental Illness"] = "Yes" if family_raw == "yes" else "No"
+    family_raw = str(
+        row.get("Family History of Mental Illness", "No")
+    ).strip().lower()
+    data["Family History of Mental Illness"] = (
+        "Yes" if family_raw == "yes" else "No"
+    )
 
-    # ── student identity ───────────────────────────────────────────────────
+    # ── student identity ──────────────────────────────────────────────────
     data["name"]  = str(row.get("name", "")).strip() or f"Anonymous #{row_num}"
-    data["email"] = str(row.get("email", "")).strip() or f"unknown_{row_num}@import.csv"
+    data["email"] = (
+        str(row.get("email", "")).strip() or f"unknown_{row_num}@import.csv"
+    )
 
     return data, None
 
@@ -251,7 +300,6 @@ def submit_survey(request):
     survey_id = data.get("survey_id", "").strip()
     survey    = get_object_or_404(Survey, id=survey_id, is_active=True)
 
-    # Cast numeric fields
     numeric_fields = {
         "Age": float, "CGPA": float,
         "Academic Pressure": int, "Work Pressure": int,
@@ -397,52 +445,56 @@ def survey_details(request, survey_id):
 @user_passes_test(_is_admin)
 def import_csv(request, survey_id):
     """
-    GET  → render the import page with column guide
-    POST → process the uploaded CSV file
+    GET  → render the import page
+    POST → process the uploaded Google Forms (or plain) CSV
     """
     survey = get_object_or_404(Survey, id=survey_id)
 
     if request.method == "GET":
         return render(request, "import_csv.html", {"survey": survey})
 
-    # ── POST: handle upload ────────────────────────────────────────────────
+    # ── POST ──────────────────────────────────────────────────────────────
     csv_file = request.FILES.get("csv_file")
     if not csv_file:
         messages.error(request, "No file selected. Please choose a CSV file.")
         return render(request, "import_csv.html", {"survey": survey})
 
-    if not csv_file.name.endswith(".csv"):
-        messages.error(request, "Invalid file type. Please upload a .csv file.")
+    if not csv_file.name.lower().endswith(".csv"):
+        messages.error(request, "Invalid file type — please upload a .csv file.")
         return render(request, "import_csv.html", {"survey": survey})
 
-    # Decode file
+    # Decode — Google Forms exports UTF-8 with BOM
     try:
-        decoded = csv_file.read().decode("utf-8-sig")  # utf-8-sig strips BOM
+        decoded = csv_file.read().decode("utf-8-sig")
     except UnicodeDecodeError:
         try:
             csv_file.seek(0)
             decoded = csv_file.read().decode("latin-1")
         except Exception:
-            messages.error(request, "Could not decode the CSV file. Ensure it is UTF-8 or Latin-1 encoded.")
+            messages.error(request, "Could not decode the file. Ensure it is UTF-8 encoded.")
             return render(request, "import_csv.html", {"survey": survey})
 
     reader = csv.DictReader(io.StringIO(decoded))
 
     if not reader.fieldnames:
-        messages.error(request, "CSV file appears to be empty or has no headers.")
+        messages.error(request, "CSV file appears empty or has no header row.")
         return render(request, "import_csv.html", {"survey": survey})
 
-    # Normalise headers
     header_map = _normalise_headers(list(reader.fieldnames))
 
-    imported   = 0
-    skipped    = 0
-    errors     = []
+    imported            = 0
+    skipped             = 0
+    errors: list[str]   = []
     prediction_failures = 0
 
-    for row_num, raw_row in enumerate(reader, start=2):  # row 1 = header
-        # Re-key using canonical names
-        row = {header_map.get(k, k): v for k, v in raw_row.items()}
+    for row_num, raw_row in enumerate(reader, start=2):
+        # Re-key with canonical names; drop __SKIP__ columns (e.g. Timestamp)
+        row = {
+            canonical: v
+            for orig, canonical in header_map.items()
+            if canonical != "__SKIP__"
+            and (v := raw_row.get(orig, "")) is not None
+        }
 
         data, err = _parse_csv_row(row, row_num)
         if err:
@@ -450,7 +502,6 @@ def import_csv(request, survey_id):
             skipped += 1
             continue
 
-        # Create DB records
         try:
             student = Student.objects.create(
                 name  = data["name"],
@@ -478,7 +529,6 @@ def import_csv(request, survey_id):
             skipped += 1
             continue
 
-        # Run ML prediction
         ml_input = {
             "Age":             data["Age"],
             "Gender":          data["Gender"],
@@ -506,27 +556,33 @@ def import_csv(request, survey_id):
         except Exception as exc:
             logger.warning("Prediction failed for imported row %d: %s", row_num, exc)
             prediction_failures += 1
-            # Response is saved; prediction just won't appear
 
         imported += 1
 
-    # ── Summary message ────────────────────────────────────────────────────
+    # ── Result messages ───────────────────────────────────────────────────
     if imported:
         msg = f"Successfully imported {imported} response{'s' if imported != 1 else ''}."
         if prediction_failures:
-            msg += f" ({prediction_failures} predictions could not be run — model may not be loaded.)"
+            msg += (
+                f" ({prediction_failures} risk prediction"
+                f"{'s' if prediction_failures != 1 else ''} could not run — "
+                "model artefacts may not be loaded on this server.)"
+            )
         messages.success(request, msg)
+
     if skipped:
-        messages.warning(request, f"Skipped {skipped} row{'s' if skipped != 1 else ''} due to errors.")
-    if errors:
-        # Show first 5 errors to avoid flooding
-        for e in errors[:5]:
-            messages.error(request, e)
-        if len(errors) > 5:
-            messages.error(request, f"… and {len(errors) - 5} more errors.")
+        messages.warning(
+            request,
+            f"Skipped {skipped} row{'s' if skipped != 1 else ''} due to errors.",
+        )
+
+    for e in errors[:5]:
+        messages.error(request, e)
+    if len(errors) > 5:
+        messages.error(request, f"… and {len(errors) - 5} more row errors (check your CSV).")
 
     if not imported and not skipped:
-        messages.warning(request, "The CSV file had no data rows.")
+        messages.warning(request, "The CSV file contained no data rows.")
 
     return redirect("survey_details", survey_id=survey_id)
 
@@ -534,7 +590,6 @@ def import_csv(request, survey_id):
 @login_required
 @user_passes_test(_is_admin)
 def student_detail(request, id):
-    """Detail view for a single survey response — staff only."""
     response   = get_object_or_404(
         SurveyResponse.objects.select_related("student", "survey", "predictionresult"),
         id=id,
@@ -568,7 +623,6 @@ def survey_analytics(request, survey_id):
     high_pct      = round(high_risk / total * 100, 1) if total else 0
     avg_score_pct = round(avg_score * 100, 1)
 
-    # Risk-score histogram
     all_scores   = list(predictions.values_list("risk_score", flat=True))
     hist_buckets = [0, 0, 0, 0]
     for s in all_scores:
@@ -577,7 +631,6 @@ def survey_analytics(request, survey_id):
         elif s < 0.75: hist_buckets[2] += 1
         else:          hist_buckets[3] += 1
 
-    # Trend over time
     trend_d = defaultdict(int)
     for pred in predictions:
         trend_d[pred.response.created_at.date().isoformat()] += 1
