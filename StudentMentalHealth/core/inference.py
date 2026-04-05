@@ -58,24 +58,45 @@ from preprocessing import engineer_features, BIN_COLS      # noqa: E402
 @lru_cache(maxsize=1)
 def _load_artefacts() -> tuple:
     required = {
-        "model":     _OUTPUTS_DIR / "lr.pkl",
+        "model":     _OUTPUTS_DIR / "rf.pkl",
         "template":  _OUTPUTS_DIR / "feature_template.csv",
         "encoders":  _OUTPUTS_DIR / "bin_encoders.pkl",
         "dep_rules": _OUTPUTS_DIR / "depression_rules.csv",
     }
+
+    HF_REPO = os.environ.get("HF_REPO", "YOUR_USERNAME/student-mental-health-model")
+    HF_FILES = ["rf.pkl", "bin_encoders.pkl"]  # only large files
+
+    _OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    for filename in HF_FILES:
+        dest = _OUTPUTS_DIR / filename
+        if not dest.exists():
+            try:
+                from huggingface_hub import hf_hub_download
+                logger.info(f"Downloading {filename} from Hugging Face...")
+                cached = hf_hub_download(
+                    repo_id=HF_REPO,
+                    filename=filename,
+                    repo_type="model",
+                )
+                import shutil
+                shutil.copy(cached, dest)
+                logger.info(f"{filename} ready.")
+            except Exception as e:
+                raise RuntimeError(f"Failed to download {filename}: {e}")
+
     for name, path in required.items():
         if not path.exists():
             raise RuntimeError(
-                f"Required artefact '{name}' not found at: {path}\n"
-                "Run the ML pipeline first:\n"
-                "  python pipeline.py --data data/raw/train.csv --output outputs/"
+                f"Required artefact '{name}' not found at: {path}"
             )
+
     model     = joblib.load(required["model"])
     template  = pd.read_csv(required["template"])
     encoders  = joblib.load(required["encoders"])
     dep_rules = pd.read_csv(required["dep_rules"])
     return model, template, encoders, dep_rules
-
 
 # ---------------------------------------------------------------------------
 # Internal helpers
