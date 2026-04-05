@@ -7,15 +7,16 @@ Usage
 -----
     python pipeline.py --data data/raw/train.csv --output outputs/
 
-Fixes in v2
------------
-* build_model_matrix now returns (X, y, encoders) — one LabelEncoder per
-  bin column — and we persist the encoders to bin_encoders.pkl so that
-  inference.py can use them correctly.
+Fixes applied
+-------------
+* RF calibration set is now a dedicated val split, not the same X_test
+  used for evaluation — previously metrics were inflated/meaningless.
+* SHAP now uses rf_base (the raw RandomForest) not the CalibratedClassifierCV
+  wrapper, which TreeExplainer does not support.
 * sample_size variable shadowing bug fixed (local `sample_size` inside
   SHAP block no longer overwrites the CLI argument).
-* SHAP block moved inside its own try/except so a SHAP failure doesn't
-  abort the rest of the pipeline.
+* build_model_matrix returns (X, y, encoders) and bin_encoders.pkl is
+  correctly persisted.
 """
 
 from __future__ import annotations
@@ -113,10 +114,10 @@ def run(data_path, output_dir, min_support, min_confidence,
     _log(f"Transaction matrix: {tx_df.shape}  ({list(tx_df.columns[:5])} ...)")
 
     # ------------------------------------------------------------------
-    # 3. Model feature matrix  (returns encoders now)
+    # 3. Model feature matrix
     # ------------------------------------------------------------------
     _section("Step 3 — Model Feature Matrix")
-    X, y, encoders = build_model_matrix(df)          # <-- fixed signature
+    X, y, encoders = build_model_matrix(df)
     _log(f"Feature matrix: {X.shape}  |  Positive class rate: {y.mean():.3f}")
     _log(f"Encoders fitted for {len(encoders)} bin columns")
 
@@ -182,48 +183,48 @@ def run(data_path, output_dir, min_support, min_confidence,
 
     import joblib
     import json
-    from sklearn.linear_model   import LogisticRegression
-    from sklearn.ensemble       import RandomForestClassifier
-    from sklearn.metrics        import (accuracy_score, precision_score,
-                                        recall_score, f1_score, roc_auc_score)
+    from sklearn.linear_model    import LogisticRegression
+    from sklearn.ensemble        import RandomForestClassifier
+    from sklearn.calibration     import CalibratedClassifierCV
+    from sklearn.metrics         import (accuracy_score, precision_score,
+                                         recall_score, f1_score, roc_auc_score)
     from sklearn.model_selection import train_test_split
 
-        # Ensure X keeps column names through the split
     X_model = X_enriched.copy()
     y_model = y.copy()
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_model, y_model, test_size=0.2, random_state=42, stratify=y_model
+    # FIX: three-way split so calibration set != evaluation set.
+    # train=70%, calibration=15%, test=15%
+    X_train, X_temp, y_train, y_temp = train_test_split(
+        X_model, y_model, test_size=0.30, random_state=42, stratify=y_model
     )
+    X_cal, X_test, y_cal, y_test = train_test_split(
+        X_temp, y_temp, test_size=0.50, random_state=42, stratify=y_temp
+    )
+    _log(f"Split — train: {len(X_train)}  cal: {len(X_cal)}  test: {len(X_test)}")
 
-    # Explicitly preserve column names
     feature_names = list(X_train.columns)
 
     lr = LogisticRegression(max_iter=1000)
-    from sklearn.calibration import CalibratedClassifierCV
+    lr.fit(X_train, y_train)
 
+    # Train base RF on train set, calibrate on cal set, evaluate on test set.
     rf_base = RandomForestClassifier(n_estimators=70, random_state=42)
     rf_base.fit(X_train, y_train)
 
-    # cv=None means use prefit estimator — pass the fitted model directly
-    rf = CalibratedClassifierCV(rf_base, method="isotonic")
-    rf.fit(X_test, y_test)   # calibrate on held-out set  # calibrate on held-out set
-    lr.fit(X_train, y_train)
-    
-
-    # Verify feature names were stored
-    assert hasattr(rf, 'feature_names_in_'), "RF trained without feature names!"
-    print("RF feature names stored:", list(rf.feature_names_in_)[:5], "...")
+    # FIX: calibrate on X_cal (separate from X_test used for evaluation).
+    rf = CalibratedClassifierCV(rf_base, method="isotonic", cv="prefit")
+    rf.fit(X_cal, y_cal)
 
     def _evaluate(model, Xt, yt):
         prob = model.predict_proba(Xt)[:, 1]
         pred = (prob >= 0.5).astype(int)
         return {
-            "accuracy":  accuracy_score(yt, pred),
-            "precision": precision_score(yt, pred),
-            "recall":    recall_score(yt, pred),
-            "f1":        f1_score(yt, pred),
-            "roc_auc":   roc_auc_score(yt, prob),
+            "accuracy":  round(accuracy_score(yt, pred), 4),
+            "precision": round(precision_score(yt, pred), 4),
+            "recall":    round(recall_score(yt, pred), 4),
+            "f1":        round(f1_score(yt, pred), 4),
+            "roc_auc":   round(roc_auc_score(yt, prob), 4),
         }
 
     metrics = {
@@ -233,8 +234,6 @@ def run(data_path, output_dir, min_support, min_confidence,
 
     joblib.dump(lr, os.path.join(output_dir, "lr.pkl"))
     joblib.dump(rf, os.path.join(output_dir, "rf.pkl"))
-
-    # *** FIX: persist one encoder per column ***
     joblib.dump(encoders, os.path.join(output_dir, "bin_encoders.pkl"))
     _log(f"bin_encoders.pkl saved  ({len(encoders)} encoders)")
 
@@ -244,7 +243,6 @@ def run(data_path, output_dir, min_support, min_confidence,
     _log(f"LR  Metrics: {metrics['logistic_regression']}")
     _log(f"RF  Metrics: {metrics['random_forest']}")
 
-    # Feature template (column order for inference alignment)
     template_path = os.path.join(output_dir, "feature_template.csv")
     X_model.head(1).to_csv(template_path, index=False)
     _log(f"Feature template saved -> {template_path}")
@@ -261,7 +259,9 @@ def run(data_path, output_dir, min_support, min_confidence,
         X_shap = X_test.sample(n=shap_n, random_state=42)
         _log(f"Running SHAP on {shap_n} samples...")
 
-        explainer   = shap.TreeExplainer(rf)
+        # FIX: use rf_base (raw RandomForest), not the CalibratedClassifierCV
+        # wrapper. TreeExplainer only supports native tree models.
+        explainer   = shap.TreeExplainer(rf_base)
         shap_values = explainer.shap_values(X_shap)
 
         shap_to_plot = shap_values[1] if isinstance(shap_values, list) else shap_values

@@ -7,9 +7,11 @@ transaction DataFrame for Apriori mining.
 
 Fix (v2): build_model_matrix now creates one LabelEncoder per bin column
 and returns them alongside X and y so the pipeline can persist them
-correctly.  The old code reused a single `le` instance in a loop,
-meaning only the last column's classes were kept — all earlier columns
-were silently encoded as 0.
+correctly.
+
+Fix (v3): build_transactions now skips NaN/None bin values instead of
+adding the literal string "nan" to the transaction set. Previously Apriori
+mined rules involving the item "nan", contaminating all association rules.
 """
 
 import re
@@ -143,7 +145,6 @@ def build_model_matrix(
 
     for col in BIN_COLS:
         le = LabelEncoder()
-        # Convert Categorical → object → str, THEN replace NaN sentinel
         df[col] = df[col].astype(object).fillna("Unknown").astype(str)
         df[col + "_Enc"] = le.fit_transform(df[col])
         encoders[col] = le
@@ -157,26 +158,29 @@ def build_model_matrix(
 
     return X, y, encoders
 
+
 def build_transactions(df: pd.DataFrame) -> pd.DataFrame:
     df = engineer_features(df)
 
     rows = []
     for _, row in df.iterrows():
-        items: dict[str, bool] = {
-            f"Gender_{row['Gender']}":              True,
-            str(row["Age_Bin"]):                    True,
-            str(row["CGPA_Bin"]):                   True,
-            str(row["AcadPressure_Bin"]):           True,
-            str(row["WorkPressure_Bin"]):           True,
-            str(row["StudyHrs_Bin"]):               True,
-            str(row["StudySat_Bin"]):               True,
-            str(row["JobSat_Bin"]):                 True,
-            str(row["Sleep_Cat"]):                  True,
-            str(row["FinStress_Bin"]):              True,
-            "Suicidal_Yes" if row["Suicidal_Thoughts"] else "Suicidal_No": True,
-            "FamilyHistory_Yes" if row["Family_History"] else "FamilyHistory_No": True,
-            "Depression_Yes" if row["Depression"] == 1 else "Depression_No": True,
-        }
+        items: dict[str, bool] = {}
+
+        # Gender
+        items[f"Gender_{row['Gender']}"] = True
+
+        # FIX: skip NaN bin values — previously str(NaN) = "nan" was added
+        # to the transaction set, causing Apriori to mine spurious rules
+        # involving the literal item "nan".
+        for col in BIN_COLS:
+            val = row[col]
+            if pd.notna(val) and str(val) != "nan":
+                items[str(val)] = True
+
+        items["Suicidal_Yes" if row["Suicidal_Thoughts"] else "Suicidal_No"] = True
+        items["FamilyHistory_Yes" if row["Family_History"] else "FamilyHistory_No"] = True
+        items["Depression_Yes" if row["Depression"] == 1 else "Depression_No"] = True
+
         rows.append(items)
 
     tx_df = pd.DataFrame(rows).fillna(False).astype(bool)

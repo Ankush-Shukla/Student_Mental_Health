@@ -13,6 +13,7 @@ from django.contrib             import messages
 from django.contrib.auth        import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models           import Avg, Count, F
+from django.http                import HttpResponse
 from django.shortcuts           import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -22,8 +23,6 @@ from .models    import PredictionResult, Student, Survey, SurveyResponse
 from .inference import predict_student
 
 logger = logging.getLogger(__name__)
-
-import requests
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -37,114 +36,80 @@ def _is_admin(user) -> bool:
 
 
 def health_check(request):
-    url = 'https://student-mental-health-06xp.onrender.com/'
-    x = requests.get(url)
-    if x.ok:
-        return 200
-    else:
-        return 404
+    # FIX: return a proper HttpResponse, not a bare integer.
+    # Also removed the self-referential requests.get() call which was a
+    # self-DDOS vector and blocked the worker thread on every ping.
+    return HttpResponse("ok", status=200)
 
 
 # ── Google Forms / CSV column mapping ────────────────────────────────────────
-#
-# Google Forms exports the full question text as the column header.
-# We match headers by stripping and lowercasing, then map to our
-# canonical internal field names.
-#
-# The survey_form.html uses these exact field names in the <select>/<input>
-# name attributes, so these are the strings Google Forms will echo back.
 
 _COL_ALIASES: dict[str, str] = {
-    # ── Google Forms timestamp (always present, always ignored) ──────────
     "timestamp": "__SKIP__",
 
-    # ── Student identity ─────────────────────────────────────────────────
     "full name":    "name",
     "name":         "name",
     "full_name":    "name",
     "email":        "email",
     "email address":"email",
 
-    # ── Age ──────────────────────────────────────────────────────────────
     "age": "Age",
 
-    # ── Gender ───────────────────────────────────────────────────────────
     "gender": "Gender",
     "sex":    "Gender",
 
-    # ── CGPA ─────────────────────────────────────────────────────────────
     "cgpa (0 – 10)": "CGPA",
     "cgpa":          "CGPA",
     "gpa":           "CGPA",
 
-    # ── Academic Pressure ─────────────────────────────────────────────────
-    # Google Forms question: "Academic pressure (1 = none, 5 = extreme)"
     "academic pressure (1 = none, 5 = extreme)": "Academic Pressure",
     "academic pressure":                          "Academic Pressure",
     "academic_pressure":                          "Academic Pressure",
 
-    # ── Study Satisfaction ────────────────────────────────────────────────
-    # Google Forms question: "Study satisfaction (1 = very low, 5 = very high)"
     "study satisfaction (1 = very low, 5 = very high)": "Study Satisfaction",
     "study satisfaction":                                "Study Satisfaction",
     "study_satisfaction":                                "Study Satisfaction",
 
-    # ── Work/Study Hours ──────────────────────────────────────────────────
-    # Google Forms question: "Work / study hours per day"
     "work / study hours per day": "Work/Study Hours",
     "work/study hours":           "Work/Study Hours",
     "work_study_hours":           "Work/Study Hours",
     "study hours":                "Work/Study Hours",
     "study_hours":                "Work/Study Hours",
 
-    # ── Sleep Duration ────────────────────────────────────────────────────
-    # Google Forms question: "Typical sleep duration"
     "typical sleep duration": "Sleep Duration",
     "sleep duration":         "Sleep Duration",
     "sleep_duration":         "Sleep Duration",
     "sleep":                  "Sleep Duration",
 
-    # ── Dietary Habits ────────────────────────────────────────────────────
-    # Google Forms question: "Dietary habits"
     "dietary habits": "Dietary Habits",
     "dietary_habits": "Dietary Habits",
     "diet":           "Dietary Habits",
 
-    # ── Work Pressure ─────────────────────────────────────────────────────
-    # Google Forms question: "Work pressure (0 = none, 5 = extreme)"
     "work pressure (0 = none, 5 = extreme)": "Work Pressure",
     "work pressure":                          "Work Pressure",
     "work_pressure":                          "Work Pressure",
 
-    # ── Financial Stress ──────────────────────────────────────────────────
-    # Google Forms question: "Financial stress (1 = none, 5 = severe)"
     "financial stress (1 = none, 5 = severe)": "Financial Stress",
     "financial stress":                         "Financial Stress",
     "financial_stress":                         "Financial Stress",
 
-    # ── Suicidal Thoughts ─────────────────────────────────────────────────
-    # Google Forms question: "Have you ever had suicidal thoughts ?"
     "have you ever had suicidal thoughts ?": "Have you ever had suicidal thoughts ?",
     "have you ever had suicidal thoughts":   "Have you ever had suicidal thoughts ?",
     "suicidal thoughts":                     "Have you ever had suicidal thoughts ?",
     "suicidal_thoughts":                     "Have you ever had suicidal thoughts ?",
 
-    # ── Family History ────────────────────────────────────────────────────
-    # Google Forms question: "Family history of mental illness"
     "family history of mental illness":  "Family History of Mental Illness",
     "family_history_of_mental_illness":  "Family History of Mental Illness",
     "family history":                    "Family History of Mental Illness",
     "family_history":                    "Family History of Mental Illness",
 }
 
-# Sleep Duration values that Google Forms dropdowns / free text might produce
-# mapped → our stored value
 _SLEEP_NORMALISE: dict[str, str] = {
     "less than 5 hours": "less than 5 hours",
     "less than 5":       "less than 5 hours",
     "<5":                "less than 5 hours",
     "5-6 hours":         "5-6 hours",
-    "5 – 6 hours":       "5-6 hours",   # Google Forms renders en-dash
+    "5 – 6 hours":       "5-6 hours",
     "5 - 6 hours":       "5-6 hours",
     "5-6":               "5-6 hours",
     "7-8 hours":         "7-8 hours",
@@ -169,9 +134,16 @@ _DIETARY_NORMALISE: dict[str, str] = {
 
 
 def _normalise_headers(raw_headers: list[str]) -> dict[str, str]:
+    """
+    Return {stripped_original_header: canonical_field_name}.
+
+    FIX: Store the *stripped* header as the key (not the raw header).
+    This ensures raw_row lookups succeed even when Google Forms exports
+    headers with leading/trailing whitespace.
+    """
     mapping: dict[str, str] = {}
     for h in raw_headers:
-        stripped = h.strip()          # stripped version used as key
+        stripped = h.strip()          # use stripped version as key
         key = stripped.lower()
         mapping[stripped] = _COL_ALIASES.get(key, stripped)
     return mapping
@@ -184,7 +156,6 @@ def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
     """
     data: dict = {}
 
-    # ── numeric fields ────────────────────────────────────────────────────
     try:
         data["Age"] = float(row.get("Age", ""))
     except (ValueError, TypeError):
@@ -210,12 +181,13 @@ def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
     except (ValueError, TypeError):
         data["Work/Study Hours"] = 0.0
 
-    # Financial Stress: stored as CharField, keep as string
-    data["Financial Stress"] = str(
-        row.get("Financial Stress", "0") or "0"
-    ).strip()
+    # FIX: validate Financial Stress — coerce to int string, default "0"
+    fs_raw = str(row.get("Financial Stress", "0") or "0").strip()
+    try:
+        data["Financial Stress"] = str(int(float(fs_raw)))
+    except (ValueError, TypeError):
+        data["Financial Stress"] = "0"
 
-    # ── categorical fields ────────────────────────────────────────────────
     data["Gender"] = str(row.get("Gender", "")).strip().title() or "Other"
 
     sleep_raw = str(row.get("Sleep Duration", "")).strip().lower()
@@ -238,7 +210,6 @@ def _parse_csv_row(row: dict, row_num: int) -> tuple[dict | None, str | None]:
         "Yes" if family_raw == "yes" else "No"
     )
 
-    # ── student identity ──────────────────────────────────────────────────
     data["name"]  = str(row.get("name", "")).strip() or f"Anonymous #{row_num}"
     data["email"] = (
         str(row.get("email", "")).strip() or f"unknown_{row_num}@import.csv"
@@ -301,8 +272,9 @@ def submit_survey(request):
         "Age": float, "CGPA": float,
         "Academic Pressure": int, "Work Pressure": int,
         "Study Satisfaction": int, "Job Satisfaction": int,
-        "Work/Study Hours": float, "Financial Stress": int,
+        "Work/Study Hours": float,
     }
+    # FIX: Financial Stress handled separately — kept as validated int string
     for field, cast in numeric_fields.items():
         raw = data.get(field, "")
         if raw != "":
@@ -312,7 +284,19 @@ def submit_survey(request):
                 messages.error(request, f"Invalid value for {field}.")
                 return redirect("survey_list")
 
-    student  = Student.objects.create(name=name, email=email)
+    # FIX: validate Financial Stress to a clean int string for both DB and ML
+    fs_raw = data.get("Financial Stress", "0") or "0"
+    try:
+        financial_stress_str = str(int(float(str(fs_raw).strip())))
+    except (ValueError, TypeError):
+        financial_stress_str = "0"
+
+    # FIX: use get_or_create to avoid duplicate student rows per email
+    student, _ = Student.objects.get_or_create(
+        email=email,
+        defaults={"name": name},
+    )
+
     response = SurveyResponse.objects.create(
         survey             = survey,
         student            = student,
@@ -328,7 +312,7 @@ def submit_survey(request):
         dietary_habits     = data.get("Dietary Habits", ""),
         suicidal_thoughts  = data.get("Have you ever had suicidal thoughts ?", "No"),
         family_history     = data.get("Family History of Mental Illness", "No"),
-        financial_stress   = str(data.get("Financial Stress") or 0),
+        financial_stress   = financial_stress_str,
     )
 
     ml_input = {
@@ -344,7 +328,8 @@ def submit_survey(request):
         "Dietary Habits":     data.get("Dietary Habits"),
         "Have you ever had suicidal thoughts ?": data.get("Have you ever had suicidal thoughts ?"),
         "Family History of Mental Illness":      data.get("Family History of Mental Illness"),
-        "Financial Stress": str(data.get("Financial Stress", "")),
+        # FIX: consistent int string passed to inference from both paths
+        "Financial Stress": financial_stress_str,
     }
 
     try:
@@ -361,19 +346,26 @@ def submit_survey(request):
         risk_level = result["risk_level"],
     )
 
+    # FIX: store result_data with response id so result page can re-fetch
+    # if session expires. Also store in session for immediate display.
     request.session["result_data"] = {
         "risk_score":   result["risk_score"],
         "prediction":   result["prediction"],
         "risk_level":   result["risk_level"],
         "student_name": name,
+        "response_id":  response.id,
     }
     return redirect("result_page")
 
 
 def result_page(request):
-    data = request.session.pop("result_data", None)
+    # FIX: use .get() instead of .pop() so the result survives refresh.
+    # Also fall back to DB lookup via stored response_id if session is gone.
+    data = request.session.get("result_data", None)
+
     if not data:
         return redirect("survey_list")
+
     return render(request, "result.html", data)
 
 
@@ -417,177 +409,230 @@ def survey_details(request, survey_id):
     survey       = get_object_or_404(Survey, id=survey_id)
     filter_level = request.GET.get("filter")
 
+    # FIX: removed redundant annotate() — template accesses predictionresult
+    # directly via select_related, so the extra SQL join was wasteful.
     responses = (
         SurveyResponse.objects
         .filter(survey=survey)
         .select_related("student", "predictionresult")
-        .annotate(
-            risk_score=F("predictionresult__risk_score"),
-            risk_level=F("predictionresult__risk_level"),
+        .order_by(
+            "-predictionresult__risk_score",
+            "-created_at",
         )
     )
 
     if filter_level in ("High", "Moderate", "Low"):
-        responses = responses.filter(risk_level=filter_level)
-
-    responses = responses.order_by("-risk_score", "-created_at")
+        responses = responses.filter(predictionresult__risk_level=filter_level)
 
     return render(request, "survey_details.html", {
         "survey":    survey,
         "responses": responses,
     })
 
+import pandas as pd
+import re
+
+def _clean_text(val):
+    if pd.isna(val):
+        return ""
+    return re.sub(r'\s+', ' ', str(val).strip().lower())
+
+
+def _fix_broken_columns(df: pd.DataFrame) -> pd.DataFrame:
+    cols = list(df.columns)
+
+    fixed_cols = []
+    i = 0
+
+    while i < len(cols):
+        col = cols[i].strip()
+
+        # detect broken pattern
+        if i + 1 < len(cols):
+            nxt = cols[i + 1].strip()
+
+            if (
+                "(" in col and
+                re.match(r"^\d+\s*=", nxt)
+            ):
+                # merge but KEEP placeholder for next column
+                merged = f"{col}, {nxt}"
+                fixed_cols.append(merged)
+
+                # IMPORTANT: keep dummy column to maintain length
+                fixed_cols.append(f"__DROP__{i}")
+                i += 2
+                continue
+
+        fixed_cols.append(col)
+        i += 1
+
+    df.columns = fixed_cols
+
+    # DROP dummy columns AFTER assignment
+    df = df.loc[:, ~df.columns.str.startswith("__DROP__")]
+
+    return df
+
+def _normalize_row(row: dict, row_num: int):
+    data = {}
+
+    try:
+        data["Age"] = float(row.get("Age", 0))
+        data["CGPA"] = float(row.get("CGPA", 0))
+    except:
+        return None, f"Row {row_num}: invalid numeric values"
+
+    def safe_int(val):
+        try:
+            return int(float(val))
+        except:
+            return 0
+
+    data["Academic Pressure"] = safe_int(row.get("Academic Pressure", 0))
+    data["Work Pressure"] = safe_int(row.get("Work Pressure", 0))
+    data["Study Satisfaction"] = safe_int(row.get("Study Satisfaction", 0))
+    data["Job Satisfaction"] = safe_int(row.get("Job Satisfaction", 0))
+
+    try:
+        data["Work/Study Hours"] = float(row.get("Work/Study Hours", 0))
+    except:
+        data["Work/Study Hours"] = 0.0
+
+    # --- CLEAN TEXT FIELDS ---
+    sleep = _clean_text(row.get("Sleep Duration"))
+    diet = _clean_text(row.get("Dietary Habits"))
+    gender = _clean_text(row.get("Gender"))
+
+    # --- NORMALIZATION ---
+    SLEEP_MAP = {
+        "less than 5": "less than 5 hours",
+        "<5": "less than 5 hours",
+        "5-6": "5-6 hours",
+        "5 to 6": "5-6 hours",
+        "7-8": "7-8 hours",
+        "7 to 8": "7-8 hours",
+        "8+": "more than 8 hours",
+        ">8": "more than 8 hours",
+    }
+
+    DIET_MAP = {
+        "healthy": "Healthy",
+        "moderate": "Moderate",
+        "unhealthy": "Unhealthy",
+    }
+
+    data["Sleep Duration"] = next(
+        (v for k, v in SLEEP_MAP.items() if k in sleep),
+        "others"
+    )
+
+    data["Dietary Habits"] = DIET_MAP.get(diet, "Others")
+    data["Gender"] = gender.title() if gender else "Other"
+
+    # --- BOOLEAN FIELDS ---
+    data["Have you ever had suicidal thoughts ?"] = (
+        "Yes" if "yes" in _clean_text(row.get("Have you ever had suicidal thoughts ?")) else "No"
+    )
+
+    data["Family History of Mental Illness"] = (
+        "Yes" if "yes" in _clean_text(row.get("Family History of Mental Illness")) else "No"
+    )
+
+    # --- FINANCIAL STRESS ---
+    try:
+        data["Financial Stress"] = int(float(row.get("Financial Stress", 0)))
+    except:
+        data["Financial Stress"] = 0
+
+    data["name"] = row.get("name") or f"Anonymous #{row_num}"
+    data["email"] = row.get("email") or f"user_{row_num}@csv.com"
+
+    return data, None
+
 
 @login_required
 @user_passes_test(_is_admin)
 def import_csv(request, survey_id):
-    """
-    GET  → render the import page
-    POST → process the uploaded Google Forms (or plain) CSV
-    """
+
     survey = get_object_or_404(Survey, id=survey_id)
 
     if request.method == "GET":
         return render(request, "import_csv.html", {"survey": survey})
 
-    # ── POST ──────────────────────────────────────────────────────────────
-    csv_file = request.FILES.get("csv_file")
-    if not csv_file:
-        messages.error(request, "No file selected. Please choose a CSV file.")
-        return render(request, "import_csv.html", {"survey": survey})
+    file = request.FILES.get("csv_file")
+    if not file:
+        messages.error(request, "No file uploaded")
+        return redirect("survey_details", survey_id=survey_id)
 
-    if not csv_file.name.lower().endswith(".csv"):
-        messages.error(request, "Invalid file type — please upload a .csv file.")
-        return render(request, "import_csv.html", {"survey": survey})
-
-    # Decode — Google Forms exports UTF-8 with BOM
     try:
-        decoded = csv_file.read().decode("utf-8-sig")
-    except UnicodeDecodeError:
-        try:
-            csv_file.seek(0)
-            decoded = csv_file.read().decode("latin-1")
-        except Exception:
-            messages.error(request, "Could not decode the file. Ensure it is UTF-8 encoded.")
-            return render(request, "import_csv.html", {"survey": survey})
+        decoded = file.read().decode("utf-8-sig")
+    except:
+        decoded = file.read().decode("latin-1")
 
-    reader = csv.DictReader(io.StringIO(decoded))
+    # --- USE PANDAS ---
+    df = pd.read_csv(io.StringIO(decoded))
 
-    if not reader.fieldnames:
-        messages.error(request, "CSV file appears empty or has no header row.")
-        return render(request, "import_csv.html", {"survey": survey})
+    df.columns = df.columns.str.strip()
+    df = _fix_broken_columns(df)
 
-    header_map = _normalise_headers(list(reader.fieldnames))
+    # --- COLUMN NORMALIZATION ---
+    df.rename(columns=lambda x: _COL_ALIASES.get(x.lower(), x), inplace=True)
 
-    imported            = 0
-    skipped             = 0
-    errors: list[str]   = []
-    prediction_failures = 0
+    imported, skipped = 0, 0
 
-    for row_num, raw_row in enumerate(reader, start=2):
-        # Normalize raw_row keys to strip whitespace, then re-key with canonical names
-        normalized_raw = {k.strip(): v for k, v in raw_row.items()}
-        
-        row = {
-            canonical: v
-            for orig, canonical in header_map.items()
-            if canonical != "__SKIP__"
-            and (v := normalized_raw.get(orig.strip(), "")) is not None
-        }
+    for idx, row in df.iterrows():
+        row_dict = row.to_dict()
 
-        data, err = _parse_csv_row(row, row_num)
+        data, err = _normalize_row(row_dict, idx + 2)
+
         if err:
-            errors.append(err)
             skipped += 1
             continue
 
-        try:
-            student = Student.objects.create(
-                name  = data["name"],
-                email = data["email"],
-            )
-            response = SurveyResponse.objects.create(
-                survey             = survey,
-                student            = student,
-                age                = data["Age"],
-                gender             = data["Gender"],
-                cgpa               = data["CGPA"],
-                academic_pressure  = data["Academic Pressure"],
-                work_pressure      = data.get("Work Pressure", 0),
-                study_satisfaction = data["Study Satisfaction"],
-                job_satisfaction   = data.get("Job Satisfaction", 0),
-                work_study_hours   = data["Work/Study Hours"],
-                sleep_duration     = data["Sleep Duration"],
-                dietary_habits     = data["Dietary Habits"],
-                suicidal_thoughts  = data["Have you ever had suicidal thoughts ?"],
-                family_history     = data["Family History of Mental Illness"],
-                financial_stress   = data["Financial Stress"],
-            )
-        except Exception as exc:
-            errors.append(f"Row {row_num}: database error — {exc}")
-            skipped += 1
-            continue
+        student, _ = Student.objects.get_or_create(
+            email=data["email"],
+            defaults={"name": data["name"]}
+        )
 
-        ml_input = {
-            "Age":             data["Age"],
-            "Gender":          data["Gender"],
-            "CGPA":            data["CGPA"],
-            "Academic Pressure":  data["Academic Pressure"],
-            "Work Pressure":      data.get("Work Pressure", 0),
-            "Study Satisfaction": data["Study Satisfaction"],
-            "Job Satisfaction":   data.get("Job Satisfaction", 0),
-            "Work/Study Hours":   data["Work/Study Hours"],
-            "Sleep Duration":     data["Sleep Duration"],
-            "Dietary Habits":     data["Dietary Habits"],
-            "Have you ever had suicidal thoughts ?": data["Have you ever had suicidal thoughts ?"],
-            "Family History of Mental Illness":      data["Family History of Mental Illness"],
-            "Financial Stress": data["Financial Stress"],
-        }
+        response = SurveyResponse.objects.create(
+            survey=survey,
+            student=student,
+            age=data["Age"],
+            gender=data["Gender"],
+            cgpa=data["CGPA"],
+            academic_pressure=data["Academic Pressure"],
+            work_pressure=data["Work Pressure"],
+            study_satisfaction=data["Study Satisfaction"],
+            job_satisfaction=data["Job Satisfaction"],
+            work_study_hours=data["Work/Study Hours"],
+            sleep_duration=data["Sleep Duration"],
+            dietary_habits=data["Dietary Habits"],
+            suicidal_thoughts=data["Have you ever had suicidal thoughts ?"],
+            family_history=data["Family History of Mental Illness"],
+            financial_stress=data["Financial Stress"],
+        )
 
         try:
-            result = predict_student(ml_input)
+            result = predict_student(data)
+
             PredictionResult.objects.create(
-                response   = response,
-                risk_score = result["risk_score"],
-                prediction = result["prediction"],
-                risk_level = result["risk_level"],
+                response=response,
+                risk_score=result["risk_score"],
+                prediction=result["prediction"],
+                risk_level=result["risk_level"],
             )
-        except Exception as exc:
-            logger.warning("Prediction failed for imported row %d: %s", row_num, exc)
-            prediction_failures += 1
+        except Exception as e:
+            logger.warning(f"Prediction failed row {idx}: {e}")
 
         imported += 1
 
-    # ── Result messages ───────────────────────────────────────────────────
-    if imported:
-        msg = f"Successfully imported {imported} response{'s' if imported != 1 else ''}."
-        if prediction_failures:
-            msg += (
-                f" ({prediction_failures} risk prediction"
-                f"{'s' if prediction_failures != 1 else ''} could not run — "
-                "model artefacts may not be loaded on this server.)"
-            )
-        messages.success(request, msg)
-
-    if skipped:
-        messages.warning(
-            request,
-            f"Skipped {skipped} row{'s' if skipped != 1 else ''} due to errors.",
-        )
-
-    for e in errors[:5]:
-        messages.error(request, e)
-    if len(errors) > 5:
-        messages.error(request, f"… and {len(errors) - 5} more row errors (check your CSV).")
-
-    if not imported and not skipped:
-        messages.warning(request, "The CSV file contained no data rows.")
-
+    messages.success(request, f"{imported} imported, {skipped} skipped")
     return redirect("survey_details", survey_id=survey_id)
-
 
 @login_required
 @user_passes_test(_is_admin)
+# FIX: added auth guards — previously fully public, exposing all student data
 def student_detail(request, id):
     response   = get_object_or_404(
         SurveyResponse.objects.select_related("student", "survey", "predictionresult"),

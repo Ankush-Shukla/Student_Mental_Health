@@ -33,3 +33,4 @@ dj_database_url==3.1.2
 psycopg2-binary
 gunicorn
 requests
+pandas
