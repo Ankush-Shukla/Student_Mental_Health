@@ -62,6 +62,9 @@
    PRINT — white, compact, no canvas
 ═══════════════════════════════════════════ */
 @media print {
+  body.js-printing .print-only { display: none !important; }
+body.js-printing .screen-only { display: none !important; }
+body.js-printing .canvas-snapshot { display: block !important; }
   nav,.navbar,.no-print { display:none !important; }
   .print-only { display: none !important; }
   html,body { background:#fff !important; color:#111 !important;
@@ -337,23 +340,18 @@ function printDash() {
     if (!canvas) return;
     const img = document.createElement('img');
     img.src = canvas.toDataURL('image/png');
-    img.style.cssText = 'width:100%;height:auto;display:none;';
+    img.style.cssText = 'width:100%;height:auto;';
     img.classList.add('canvas-snapshot');
     wrapper.after(img);
   });
 
-  // Swap visibility
-  document.querySelectorAll('.screen-only').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.canvas-snapshot').forEach(el => el.style.display = 'block');
-  document.querySelectorAll('.print-only').forEach(el => el.style.display = 'none'); // hide static tables
+  // Flag body so CSS rules take over — avoids inline style vs @media print conflicts
+  document.body.classList.add('js-printing');
 
   setTimeout(() => {
     window.print();
-
-    // Restore after print
     document.querySelectorAll('.canvas-snapshot').forEach(el => el.remove());
-    document.querySelectorAll('.screen-only').forEach(el => el.style.display = '');
-    document.querySelectorAll('.print-only').forEach(el => el.style.display = '');
+    document.body.classList.remove('js-printing');
   }, 400);
 }
 </script>
