@@ -216,14 +216,13 @@
       <div class="tile-label">Response Trend Over Time</div>
       <div class="ch screen-only" style="height:190px;"><canvas id="trendChart"></canvas></div>
       <div class="print-only">
-        <table style="margin-top:.2cm;">
-          <thead><tr><th>Date</th><th>Responses</th><th>Cumulative</th></tr></thead>
-          <tbody>
+        <div style="margin-top:.2cm;">
+          <div>
             {% for d,v,cum in trend_rows %}
-            <tr><td>{{ d }}</td><td>{{ v }}</td><td>{{ cum }}</td></tr>
+            <span>{{ d }}</td><td>{{ v }}</td><td>{{ cum }}</span>
             {% endfor %}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
