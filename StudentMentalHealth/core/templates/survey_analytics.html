@@ -63,7 +63,7 @@
 ═══════════════════════════════════════════ */
 @media print {
   nav,.navbar,.no-print { display:none !important; }
-
+  .print-only { display: none !important; }
   html,body { background:#fff !important; color:#111 !important;
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
@@ -216,13 +216,14 @@
       <div class="tile-label">Response Trend Over Time</div>
       <div class="ch screen-only" style="height:190px;"><canvas id="trendChart"></canvas></div>
       <div class="print-only">
-        <div style="margin-top:.2cm;">
-          <div>
+        <table style="margin-top:.2cm;">
+          <thead><tr><th>Date</th><th>Responses</th><th>Cumulative</th></tr></thead>
+          <tbody>
             {% for d,v,cum in trend_rows %}
-            <span>{{ d }}</td><td>{{ v }}</td><td>{{ cum }}</span>
+            <tr><td>{{ d }}</td><td>{{ v }}</td><td>{{ cum }}</td></tr>
             {% endfor %}
-          </div>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -329,6 +330,31 @@ new Chart(document.getElementById('histChart'),{
     scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(216,178,182,.08)'}}}}
 });
 
-function printDash(){ setTimeout(()=>window.print(), 350); }
+function printDash() {
+  // Snapshot all canvases → <img> for print
+  document.querySelectorAll('.ch.screen-only').forEach(wrapper => {
+    const canvas = wrapper.querySelector('canvas');
+    if (!canvas) return;
+    const img = document.createElement('img');
+    img.src = canvas.toDataURL('image/png');
+    img.style.cssText = 'width:100%;height:auto;display:none;';
+    img.classList.add('canvas-snapshot');
+    wrapper.after(img);
+  });
+
+  // Swap visibility
+  document.querySelectorAll('.screen-only').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.canvas-snapshot').forEach(el => el.style.display = 'block');
+  document.querySelectorAll('.print-only').forEach(el => el.style.display = 'none'); // hide static tables
+
+  setTimeout(() => {
+    window.print();
+
+    // Restore after print
+    document.querySelectorAll('.canvas-snapshot').forEach(el => el.remove());
+    document.querySelectorAll('.screen-only').forEach(el => el.style.display = '');
+    document.querySelectorAll('.print-only').forEach(el => el.style.display = '');
+  }, 400);
+}
 </script>
 {% endblock %}
