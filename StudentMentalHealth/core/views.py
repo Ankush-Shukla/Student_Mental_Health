@@ -25,6 +25,36 @@ from .inference import predict_student
 logger = logging.getLogger(__name__)
 
 
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+
+
+def create_admin_user(request):
+    User = get_user_model()
+
+    username = "admin"
+    email = "admin@example.com"
+    password = "admin123"
+
+    if User.objects.filter(username=username).exists():
+        return JsonResponse({
+            "status": "exists",
+            "message": "Admin user already exists."
+        })
+
+    User.objects.create_superuser(
+        username=username,
+        email=email,
+        password=password
+    )
+
+    return JsonResponse({
+        "status": "created",
+        "message": "Admin user created successfully.",
+        "username": username,
+        "password": password
+    })
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _random_id() -> str:

@@ -5,6 +5,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+
+    path("create-admin/", views.create_admin_user, name="create_admin_user"),
     # Auth
     path("",        views.login_page,  name="login_page"),
     path("logout/", views.logout_view, name="logout"),

@@ -246,7 +246,7 @@ class AprioriEngine:
         """Return all mined rules as a tidy DataFrame."""
         if not self.rules_:
             return pd.DataFrame()
-        return pd.DataFrame([r.to_dict() for r in self.rules_])
+        return pd.DataFrame([r.to_dict() for r in self.rules_])                                                         
 
     def frequent_itemsets_dataframe(self) -> pd.DataFrame:
         """Return frequent itemsets as a tidy DataFrame."""
